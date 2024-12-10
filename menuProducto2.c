@@ -37,8 +37,10 @@ int menuProducto2() {
         // Leer la opción
         entradaConNL(opcion, sizeof(opcion));
 
-        // Convertir la opción a un número
-        opcion_int = strtol(opcion, NULL, 10);
+        // Si la opción está vacía, se registra como -1
+        if (strcmp(opcion, "\n") == 0) opcion_int = -1;
+        // Si no, se convierte a un número
+        else opcion_int = strtol(opcion, NULL, 10);
         
         printf("\n");
 

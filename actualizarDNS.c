@@ -9,11 +9,11 @@
 #include "archivo.h"
 
 // Definición de las rutas de los archivos temporales
-#define RUTA_ADAPTADOR "adaptadorDNS.txt"
-#define RUTA_VELOCIDAD_FICHERO "resultadoFichero.txt"
-#define RUTA_VELOCIDAD_ADAPTADOR "resultadoAdaptador.txt"
-#define RUTA_RESULTADO_COMBINADO "resultadoCombinado.txt"
-#define RUTA_RESULTADO "resultadoDNS.txt"
+#define RUTA_ADAPTADOR "c:/temp/adaptadorDNS.txt"
+#define RUTA_VELOCIDAD_FICHERO "c:/temp/resultadoFichero.txt"
+#define RUTA_VELOCIDAD_ADAPTADOR "c:/temp/resultadoAdaptador.txt"
+#define RUTA_RESULTADO_COMBINADO "c:/temp/resultadoCombinado.txt"
+#define RUTA_RESULTADO "c:/temp/resultadoDNS.txt"
 
 
 // Función para actualizar las DNS
@@ -25,8 +25,8 @@ int actualizarDNS() {
 	char rutaDNS[1024];
 	FILE* archivo = NULL;
 	int contador = 0;
-	char ipRapidaA[16];
-	char ipRapidaB[16];
+	char ipRapidaA[16] = { "" };
+	char ipRapidaB[16] = { "" };
 	bool empate = false;
 	bool A = false;
 	bool B = false;
@@ -43,8 +43,7 @@ int actualizarDNS() {
 		}
 		printf("Error al abrir el archivo. Introduce una ruta válida.\n");
 		contador++;
-		fclose(archivo);
-	} while (1 || contador > 2);
+	} while (1 && contador < 2);
 
 	// Si se han superado los intentos
 	if (contador > 2) {
@@ -62,7 +61,7 @@ int actualizarDNS() {
 	// Pedir el nombre del adaptador de red hasta que se elija existente o se decida salir
 	do {
 		// Mostrar los adaptadores de red
-		if (!mostrarAdaptadores()) {
+		if (!mostrarSoloAdaptadores()) {
 			return 1;
 		}
 		// Pedir el nombre del adaptador de red
@@ -117,7 +116,7 @@ int actualizarDNS() {
 	// Si hay empate en las DNS se comprueba el número de saltos
 	if (empate) {
 		// Comprobar los saltos de las DNS y seleccionar la más rápida
-		char* ipSaltos = saltosDNS(ipRapidaA, ipRapidaB, &empate);
+		char* ipSaltos = saltosDNS(&ipRapidaA, &ipRapidaB, &empate);
 		
 		if (!empate) {
 			strcpy(ipRapidaB, ipRapidaA);
@@ -127,7 +126,7 @@ int actualizarDNS() {
 	}
 
 	// Comparar las DNS finalistas con las del adaptador
-	if (!compararAdaptador(adaptador, ipRapidaA, ipRapidaB, &A, &B)) {
+	if (!compararAdaptador(adaptador, &ipRapidaA, &ipRapidaB, &A, &B)) {
 		printf("Error al comparar las DNS con las del adaptador. Volviendo...\n");
 		return 1;
 	}
@@ -149,7 +148,7 @@ int actualizarDNS() {
 	}
 
 	// Modificar la configuración de las DNS
-	if (!modificarDNS(adaptador, ipRapidaA, ipRapidaB, &A, &B)) {
+	if (!modificarDNS(adaptador, &ipRapidaA, &ipRapidaB, &A, &B)) {
 		printf("Error al comparar las DNS. Volviendo...\n");
 		return 1;
 	}

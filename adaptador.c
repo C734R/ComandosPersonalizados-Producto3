@@ -338,6 +338,42 @@ bool mostrarAdaptadores(void){
     return true;
 }
 
+// Función para mostrar los adaptadores de red
+bool mostrarSoloAdaptadores(void) {
+
+    char comando[2048];
+    FILE* consola = NULL;
+    char buffer[1024];
+    int tamBuffer = sizeof(buffer);
+
+    // Definimos el comando a ejecutar para obtener los adaptadores de red
+    sprintf(comando, "ipconfig | findstr /C:\"Adaptador\" /i");
+    consola = _popen(comando, "r");
+
+    // Si no se ha podido ejecutar el comando ipconfig
+    if (consola == NULL) {
+        printf("Error al ejecutar el comando ipconfig.\n");
+        return false;
+    }
+
+    // Mostrar un mensaje de éxito
+    printf("Comando ipconfig ejecutado con éxito.\n\n");
+    printf("--- Adaptadores de red ---\n");
+
+    // Recorrer las líneas de la salida del comando ipconfig
+    while (fgets(buffer, tamBuffer, consola) != NULL) {
+        printf("%s", buffer);
+    }
+    printf("-----------------------------------\n\n");
+
+    // Cerrar la conexión con el comando ipconfig
+    _pclose(consola);
+
+    // Devolver verdadero
+    return true;
+}
+
+
 // Función para comrpobar si existe un adaptador de red
 bool encontrarAdaptador(char *nAdaptador){
     
@@ -367,6 +403,7 @@ bool encontrarAdaptador(char *nAdaptador){
                 if (strstr(buffer, nAdaptador) != NULL) {
                     // Cerrar la conexión con el comando ipconfig
                     _pclose(consola);
+                    printf("El adaptador existe.");
                     // Registramos que el adaptador ya existe
                     return true;
                 }

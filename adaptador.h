@@ -13,6 +13,7 @@ void modificarAdaptadorRed(FILE* archivoParam);
 void copiarAdaptadorRed(FILE *archivoParam);
 void addAdaptadorRed(FILE *archivoParm);
 bool mostrarAdaptadores(void);
+bool mostrarSoloAdaptadores(void);
 bool encontrarAdaptador(char *nAdaptador);
 bool pedirDatos(FILE* archivoParam);
 
