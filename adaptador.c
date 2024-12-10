@@ -151,6 +151,9 @@ bool pedirDatos(FILE* archivoParam) {
         }
     }
     fprintf(archivoParam, "-----------------------------------\n\n");
+
+    // Devolver éxito
+	return true;
 }
 
 

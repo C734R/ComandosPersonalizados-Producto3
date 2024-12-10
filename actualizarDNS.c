@@ -17,7 +17,7 @@
 
 
 // Función para actualizar las DNS
-int actualizarDNS() {
+bool actualizarDNS() {
 	// Declaración de variables
 	char buffer[1024];
 	int tamBuffer = 1024;
@@ -30,6 +30,7 @@ int actualizarDNS() {
 	bool empate = false;
 	bool A = false;
 	bool B = false;
+	bool orden = false;
 	
 	// Pedir la ruta del archivo de DNS hasta que se introduzca una válida o se superen los intentos
 	do {
@@ -48,12 +49,12 @@ int actualizarDNS() {
 	// Si se han superado los intentos
 	if (contador > 2) {
 		printf("Demasiados intentos fallidos. Volviendo...\n");
-		return 1;
+		return false;
 	}
 
 	// Mostrar el contenido del archivo de DNS
 	if (!mostrarArchivoDNS(rutaDNS)) {
-		return 1;
+		return false;
 	}
 
 	pausaEnter();
@@ -62,7 +63,7 @@ int actualizarDNS() {
 	do {
 		// Mostrar los adaptadores de red
 		if (!mostrarSoloAdaptadores()) {
-			return 1;
+			return false;
 		}
 		// Pedir el nombre del adaptador de red
 		strcpy(adaptador,pedirAdaptador());
@@ -80,43 +81,45 @@ int actualizarDNS() {
 	// Vaciar los archivos temporales
 	if (!vaciarArchivosDNS(RUTA_ADAPTADOR, RUTA_VELOCIDAD_FICHERO, RUTA_VELOCIDAD_ADAPTADOR, RUTA_RESULTADO, RUTA_RESULTADO_COMBINADO)) {
 		printf("Error al vaciar los archivos temporales. Volviendo...\n");
-		return 1;
+		return false;
 	}
 
 	// Mostrar las DNS del adaptador de red seleccionado y guardar en archivo
 	if (!mostrarDNSAdaptador(adaptador, RUTA_ADAPTADOR)) {
 		printf("Error al mostrar las DNS del adaptador de red. Volviendo...\n");
-		return 1;
+		return false;
 	}
 
 	// Comprobar velocidad y saltos DNS del fichero y guardar en fichero temporal
 	if (!checkVelocidadDNS(rutaDNS, RUTA_VELOCIDAD_FICHERO)) {
 		printf("Error al comprobar la velocidad de las DNS del archivo. Volviendo...\n");
-		return 1;
+		return false;
 	}
 
 	// Comprobar velocidad y saltos DNS del adaptador y guardar en fichero temporal
 	if (!checkVelocidadDNS(RUTA_ADAPTADOR, RUTA_VELOCIDAD_ADAPTADOR)) {
 		printf("Error al comprobar la velocidad de las DNS del adaptador. Volviendo...\n");
-		return 1;
+		return false;
 	}
 
 	// Combinar los ficheros de velocidad
 	if (!combinarFicheros(RUTA_VELOCIDAD_FICHERO, RUTA_VELOCIDAD_ADAPTADOR, RUTA_RESULTADO_COMBINADO)) {
 		printf("Error al combinar los ficheros de velocidad. Volviendo...\n");
-		return 1;
+		return false;
 	}
 
 	// Comprobar las DNS más rápidas y guardar en variables
 	if (!compararDNS(RUTA_RESULTADO_COMBINADO, ipRapidaA, ipRapidaB, &empate)) {
 		printf("Error al comparar las DNS. Volviendo...\n");
-		return 1;
+		return false;
 	}
+
+	pausaEnter();
 
 	// Si hay empate en las DNS se comprueba el número de saltos
 	if (empate) {
 		// Comprobar los saltos de las DNS y seleccionar la más rápida
-		char* ipSaltos = saltosDNS(&ipRapidaA, &ipRapidaB, &empate);
+		char* ipSaltos = saltosDNS(ipRapidaA, ipRapidaB, &empate);
 		
 		if (!empate) {
 			strcpy(ipRapidaB, ipRapidaA);
@@ -126,32 +129,23 @@ int actualizarDNS() {
 	}
 
 	// Comparar las DNS finalistas con las del adaptador
-	if (!compararAdaptador(adaptador, &ipRapidaA, &ipRapidaB, &A, &B)) {
+	if (!compararAdaptador(adaptador, ipRapidaA, ipRapidaB, &A, &B, &orden)) {
 		printf("Error al comparar las DNS con las del adaptador. Volviendo...\n");
 		return 1;
 	}
 
-	// Si la IP A y B están en el adaptador, no se modifica
-	if (A && B) {
-		printf("Ambas IP ya están configuradas en el adaptador. No se modificarán.\n");
-		return 0;
-	}
-	// Si la IP A está en el adaptador, se modifica la B
-	else if (A) {
-		printf("La IP %s ya está configurada en el adaptador %s. Solo se modificará la segunda.\n", ipRapidaA, adaptador);
-		return 0;
-	}
-	// Si la IP B está en el adaptador, se modifica la A
-	else if (B) {
-		printf("La segunda IP más rápida %s está configurada en el adaptador %s.\n Se configurará como secundaria.\n", ipRapidaB, adaptador);
-		return 0;
-	}
 
 	// Modificar la configuración de las DNS
-	if (!modificarDNS(adaptador, &ipRapidaA, &ipRapidaB, &A, &B)) {
+	if (!modificarDNS(adaptador, ipRapidaA, ipRapidaB, &A, &B, &orden)) {
 		printf("Error al comparar las DNS. Volviendo...\n");
-		return 1;
+		return false;
 	}
 
+	// Verificar la configuración de las DNS
+	if (!verificarDNS(adaptador)) {
+		printf("Error al verificar la configuración del adaptador. Volviendo...");
+	}
 
+	// Devolver éxito
+	return true;
 }	

@@ -1,6 +1,9 @@
 #ifndef ACTUALIZARDNS_H     // Si ACTUALIZARDNS_H no ha sido definido
 #define ACTUALIZARDNS_H     // Definimos
 
-int actualizarDNS();
+// Añadimos librerías necesarias
+#include <stdbool.h>
+
+bool actualizarDNS();
 
 #endif      // Fin definición ACTUALIZARDNS_H

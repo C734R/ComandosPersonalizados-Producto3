@@ -37,7 +37,8 @@ int main() {
         switch (opcion_int){
 			// Proceder a la actualización de DNS de adaptador por el más rápido.
             case 1:
-                actualizarDNS();
+				if (!actualizarDNS()) printf("Error al actualizar las DNS del adaptador. Volviendo al menú principal...\n");
+				pausaEnter();
                 break;
 			// Mostrar menú Producto 2
             case 2:

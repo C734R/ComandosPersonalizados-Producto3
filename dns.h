@@ -14,8 +14,8 @@ bool checkSaltosDNS(char* rutaDNS, char* rutaResultado);
 bool combinarFicheros(char* rutaA, char* rutaB, char* rutaC);
 bool compararDNS(char* rutaResultados, char* ipRapidaA, char* ipRapidaB, bool* empate);
 char* saltosDNS(char* ipRapidaA, char* ipRapidaB, bool* empate);
-bool compararAdaptador(char* adaptador, char* ipA, char* ipB, bool* A, bool* B);
-bool modificarDNS(char* adaptador, char* ipA, char* ipB, bool* A, bool* B);
+bool compararAdaptador(char* adaptador, char* ipA, char* ipB, bool* A, bool* B, bool* orden);
+bool modificarDNS(char* adaptador, char* ipA, char* ipB, bool* A, bool* B, bool* orden);
 bool verificarDNS(char* adaptador);
 
 #endif      // Fin definición DNS_H
