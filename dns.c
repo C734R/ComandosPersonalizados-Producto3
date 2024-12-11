@@ -63,7 +63,7 @@ char * pedirAdaptador() {
 	printf("Introduce el nombre del adaptador de red del que quieres actualizar el DNS: ");
 	entradaSinNL(buffer, tamBuffer);
 	strcpy(adaptador, buffer);
-	printf("Adaptador de red introducido: %s\n", adaptador);
+	//printf("Adaptador de red introducido: %s\n", adaptador);
 	return adaptador;
 }
 
@@ -375,6 +375,8 @@ bool combinarFicheros(char* rutaA, char* rutaB, char * rutaC) {
 	FILE* archivoC = NULL;
 	char buffer[1024];
 	int tamBuffer = 1024;
+	char bufferA[1024];
+	bool encontrado = false;
 
 	// Abrir archivo A, origen de la combinación
 	if (!abrirArchivo(rutaA, "r", &archivoA)) {
@@ -401,7 +403,18 @@ bool combinarFicheros(char* rutaA, char* rutaB, char * rutaC) {
 
 	// Recorrer el archivo B y copiar su contenido en el archivo C
 	while (fgets(buffer, tamBuffer, archivoB) != NULL) {
-		fprintf(archivoC, "%s", buffer);
+		
+		// Comprobar si la IP ya está en el archivo
+		rewind(archivoA);
+		encontrado = false;
+		while (fgets(bufferA, tamBuffer, archivoA) != NULL) {
+			if (strstr(buffer, bufferA) != NULL) {
+				encontrado = true;
+				break;
+			}
+		}
+		// Si no está en el archivo, copiar la IP en el archivo C
+		if (!encontrado) fprintf(archivoC, "%s", buffer);
 	}
 
 	// Cerrar los archivos
@@ -499,12 +512,13 @@ char * saltosDNS (char * ipRapidaA, char * ipRapidaB, bool * empate) {
 	consola = _popen(comando, "r");
 	if (consola == NULL) {
 		printf("Error al ejecutar el comando tracert.\n");
-		return false;
+		return NULL;
 	}
 
 	// Leer la salida del comando tracert
 	while (fgets(buffer, tamBuffer, consola) != NULL) {
-
+		// Comprobar respuesta
+		printf("%s",buffer);
 		// Buscamos un espacio en el inicio de la línea
 		if (buffer[0] == ' ' && espacio == false) {
 			espacio = true;
@@ -515,11 +529,9 @@ char * saltosDNS (char * ipRapidaA, char * ipRapidaB, bool * empate) {
 			digito = true;
 		}
 
-		// Si ha terminado la línea, reiniciamos las variables
-		if (buffer[0] == '\n') {
-			espacio = false;
-			digito = false;
-		}
+		// Una vez procesada la línea, reiniciamos las variables
+		espacio = false;
+		digito = false;
 	}
 
 	// Mostrar el número de saltos para la IP
@@ -537,12 +549,13 @@ char * saltosDNS (char * ipRapidaA, char * ipRapidaB, bool * empate) {
 	consola = _popen(comando, "r");
 	if (consola == NULL) {
 		printf("Error al ejecutar el comando tracert.\n");
-		return false;
+		return NULL;
 	}
 
 	// Leer la salida del comando tracert
 	while (fgets(buffer, tamBuffer, consola) != NULL) {
-
+		// Comprobar respuesta
+		printf("%s", buffer);
 		// Buscamos un espacio en el inicio de la línea
 		if (buffer[0] == ' ' && espacio == false) {
 			espacio = true;
@@ -553,11 +566,9 @@ char * saltosDNS (char * ipRapidaA, char * ipRapidaB, bool * empate) {
 			digito = true;
 		}
 
-		// Si ha terminado la línea, reiniciamos las variables
-		if (buffer[0] == '\n') {
-			espacio = false;
-			digito = false;
-		}
+		// Una vez procesada la línea, reiniciamos las variables
+		espacio = false;
+		digito = false;
 	}
 
 	// Mostrar el número de saltos para la IP
@@ -568,13 +579,13 @@ char * saltosDNS (char * ipRapidaA, char * ipRapidaB, bool * empate) {
 
 	// Comparar los saltos de las DNS y seleccionar según resultados
 	// Si las DNS tienen el mismo número de saltos
-	if (ipRapidaA == ipRapidaB) {
+	if (saltosA == saltosB) {
 		printf("Las IPs tienen el mismo número de saltos. Por defecto se selecciona la primera IP como la primaria.\n");
 		*empate = true;
 		return ipRapidaA;
 	}
 	// Si la IP A tiene menos saltos que la IP B
-	else if (ipRapidaA < ipRapidaB) {
+	else if (saltosA < saltosB) {
 		printf("La IP %s tiene menos saltos que la IP %s. Se selecciona la IP %s como primaria.\n", ipRapidaA, ipRapidaB, ipRapidaA);
 		*empate = false;
 		return ipRapidaA;
@@ -588,59 +599,54 @@ char * saltosDNS (char * ipRapidaA, char * ipRapidaB, bool * empate) {
 }
 
 // Comparar IPs con la del adaptador
-bool compararAdaptador(char * adaptador, char * ipA, char * ipB, bool * A, bool * B, bool * orden) {
+bool compararAdaptador(char * adaptador, char * ipA, char * ipB, bool * A, bool * B, bool * orden, char * rutaAdaptador) {
 	// Declaración de variables
 	char buffer[1024];
 	int tamBuffer = 1024;
-	char comando[1024];
-	FILE* consola = NULL;
+	bool lineas = false;
+	FILE* ficheroAdaptador = NULL;
 	*A = false;
 	*B = false;
 	*orden = false;
 
-	// Crear el comando para obtener las DNS del adaptador de red seleccionado
-	sprintf(comando, "netsh interface ipv4 show dnsservers \"%s\"", adaptador);
-
-	// Ejecutar el comando definido
-	consola = _popen(comando, "r");
-	// Si no se ha podido ejecutar el comando netsh
-	if (consola == NULL) {
-		// Mostrar un mensaje de error
-		printf("Error al ejecutar el comando netsh.\n");
+	// Abrir fichero de DNSs del adaptador
+	if (!abrirArchivo(rutaAdaptador, "r", &ficheroAdaptador)) {
+		printf("Error al abrir el archivo %s.\n", rutaAdaptador);
 		return false;
 	}
 
-	// Mostrar un mensaje de éxito
-	printf("Comando ipconfig ejecutado con éxito.\n\n");
-
-	// Recorrer las líneas de la salida del comando netsh
-	while (fgets(buffer, tamBuffer, consola) != NULL) {
-		if (strstr(buffer, ipB) != NULL) {
-			*B = true;
-			if (!*A) *orden = true;
-		}
-		else if (strstr(buffer, ipA) != NULL) {
+	// Recorrer las líneas del fichero
+	while (fgets(buffer, tamBuffer, ficheroAdaptador) != NULL) {
+		
+		if (strstr(buffer, ipA) != NULL) {
 			*A = true;
-			if (!*B) *orden = false;
+			if (!*B) *orden = true;
 		}
+		else if (strstr(buffer, ipB) != NULL) {
+			*B = true;
+			if (!*A) *orden = false;
+		}
+		lineas = true;
 	}
 
-	// Cerrar la conexión con el comando netsh
-	_pclose(consola);
+	if (!lineas) return true;
+
+	// Cerrar el fichero de DNSs del adaptador
+	fclose(ficheroAdaptador);
 
 	// Si ninguna de las IPs están en el adaptador
-	if (!A && !B) printf("Ninguna de las IPs está configurada en el adaptador %s.\n", adaptador);
+	if (!*A && !*B) printf("Ninguna de las IPs está configurada en el adaptador %s.\n", adaptador);
 	// Si ambas IPs están en el adaptador 
-	else if (A && B) {
+	else if (*A && *B) {
 		// Y en orden correcto de prioridad
 		if (orden) printf("Las dos IPs más rápidas, %s y %s, ya están configuradas en el adaptador %s en orden correcto.\n", ipA, ipB, adaptador);
 		// Pero en orden incorrecto de prioridad
 		else printf("Las dos IPs más rápidas, %s y %s, ya están configuradas en el adaptador %s, pero en orden incorrecto.\n", ipA, ipB, adaptador);
 	}
 	// Si la IP A está en el adaptador
-	else if (A) printf("La IP %s ya está configurada en el adaptador %s.\n", ipA, adaptador);
+	else if (*A) printf("La IP %s ya está configurada en el adaptador %s.\n", ipA, adaptador);
 	// Si la IP B está en el adaptador
-	else if (B) printf("La IP %s ya está configurada en el adaptador %s.\n", ipB, adaptador);
+	else if (*B) printf("La IP %s ya está configurada en el adaptador %s.\n", ipB, adaptador);
 	// Devolver éxito
 	return true;
 }
@@ -655,27 +661,29 @@ bool modificarDNS(char* adaptador, char* ipA, char* ipB, bool* A, bool* B, bool*
 	char ipSecundaria[16] = { "" };
 
 	// Si la IP A y B están en el adaptador correctamente ordenadas, no se modifican
-	if (A && B && orden) {
+	if (*A && *B && *orden) {
 		printf("Ambas IP ya están configuradas correctamente en el adaptador %s, por lo que no se modificará.\n", adaptador);
 	}
 	// Si la IP A y B están en el adaptador correctamente ordenadas, no se modifican
-	else if (A && B && !orden){
+	else if (*A && *B && !*orden){
 		printf("Ambas IP ya están configuradas en el adaptador %s, pero en orden de prioridad incorrecto, por lo que se modificará su orden.\n", adaptador);
 		strcpy(ipPrimaria, ipB);
 		strcpy(ipSecundaria, ipA);
 	}
 	// Si la IP A está en el adaptador, se modifica la B
-	else if (A || B) {
-		if (A) printf("La IP %s ya está configurada en el adaptador %s. Se añadirá la IP %s en el orden correcto.\n", ipA, adaptador, ipB);
-		else if (B) printf("La segunda IP más rápida %s está configurada en el adaptador %s.\n Se configurará como secundaria y se añadirá la más rápida como primaria.\n", ipB, adaptador);
+	else if (*A || *B) {
+		if (*A && !*B) printf("La IP %s ya está configurada en el adaptador %s. Se añadirá la IP %s como secundaria.\n", ipA, adaptador, ipB);
+		else if (*B && !*A) printf("La segunda IP más rápida %s está configurada en el adaptador %s.\n Se configurará como secundaria y se añadirá la más rápida, %s, como primaria.\n", ipB, adaptador, ipA);
 		strcpy(ipPrimaria, ipA);
 		strcpy(ipSecundaria, ipB);
 	}
 
+	printf("\n");
+
 	// Informamos de la actualización de las DNS
-	printf("Actualizando DNS ...\n");
+	if ((!*A || !*B) || (*A && *B && !orden)) printf("Actualizando DNS ...\n");
 	// Comando para establecer la primera DNS
-	if (!A) {
+	if (!*A) {
 		sprintf(comando, "netsh interface ip set dns \"%s\" static %s", adaptador, ipA);
 
 		// Ejecutar el comando
@@ -692,7 +700,7 @@ bool modificarDNS(char* adaptador, char* ipA, char* ipB, bool* A, bool* B, bool*
 		printf("DNS primaria actualizada con éxito.\n");
 	}
 
-	if (!B) {
+	if (!*B) {
 		// Comando para establecer la segunda DNS
 		sprintf(comando, "netsh interface ip add dns \"%s\" %s index=2", adaptador, ipB);
 

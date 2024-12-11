@@ -90,11 +90,15 @@ bool actualizarDNS() {
 		return false;
 	}
 
+	printf("*** Comprobar velocidad DNSs fichero %s ***\n\n", rutaDNS);
+
 	// Comprobar velocidad y saltos DNS del fichero y guardar en fichero temporal
 	if (!checkVelocidadDNS(rutaDNS, RUTA_VELOCIDAD_FICHERO)) {
 		printf("Error al comprobar la velocidad de las DNS del archivo. Volviendo...\n");
 		return false;
 	}
+
+	printf("*** Comprobar velocidad DNSs fichero %s ***\n\n--> Se omiten coincidencias <--\n\n", RUTA_ADAPTADOR);
 
 	// Comprobar velocidad y saltos DNS del adaptador y guardar en fichero temporal
 	if (!checkVelocidadDNS(RUTA_ADAPTADOR, RUTA_VELOCIDAD_ADAPTADOR)) {
@@ -121,19 +125,28 @@ bool actualizarDNS() {
 		// Comprobar los saltos de las DNS y seleccionar la más rápida
 		char* ipSaltos = saltosDNS(ipRapidaA, ipRapidaB, &empate);
 		
-		if (!empate) {
-			strcpy(ipRapidaB, ipRapidaA);
-			strcpy(ipRapidaA, ipSaltos);
-			printf("Se han intercambiado la prioridad de IPs debido al número de saltos.\n");
+		// Si no se ha devuelto ninguna IP
+		if (ipSaltos == NULL) {
+			printf("Error al comprobar los saltos de las DNS. Volviendo...\n");
+			return false;
 		}
+
+		// Si no hay empate, se intercambian las IPs
+		if (!empate) {
+			// Si la IP seleccionada es la B, se intercambian las IPs
+			if (strcmp(ipSaltos, ipRapidaB) == 0) {
+				strcpy(ipRapidaB, ipRapidaA);
+				strcpy(ipRapidaA, ipSaltos);
+			}
+		}
+		pausaEnter();
 	}
 
 	// Comparar las DNS finalistas con las del adaptador
-	if (!compararAdaptador(adaptador, ipRapidaA, ipRapidaB, &A, &B, &orden)) {
+	if (!compararAdaptador(adaptador, ipRapidaA, ipRapidaB, &A, &B, &orden, RUTA_ADAPTADOR)) {
 		printf("Error al comparar las DNS con las del adaptador. Volviendo...\n");
 		return 1;
 	}
-
 
 	// Modificar la configuración de las DNS
 	if (!modificarDNS(adaptador, ipRapidaA, ipRapidaB, &A, &B, &orden)) {

@@ -406,7 +406,7 @@ bool encontrarAdaptador(char *nAdaptador){
                 if (strstr(buffer, nAdaptador) != NULL) {
                     // Cerrar la conexión con el comando ipconfig
                     _pclose(consola);
-                    printf("El adaptador existe.");
+                    printf("El adaptador existe.\n\n");
                     // Registramos que el adaptador ya existe
                     return true;
                 }

@@ -56,4 +56,5 @@ bool eliminarNL (char *entrada) {
 void pausaEnter() {
     printf("Pulsa Enter para continuar...");
     while (getchar() != '\n');
+    printf("\n");
 }
