@@ -16,5 +16,7 @@ bool mostrarAdaptadores(void);
 bool mostrarSoloAdaptadores(void);
 bool encontrarAdaptador(char *nAdaptador);
 bool pedirDatos(FILE* archivoParam);
+char* pedirAdaptador();
+bool pedirAdaptadorReintentos(char* adaptador);
 
 #endif      // Fin definición ADAPTADOR_H

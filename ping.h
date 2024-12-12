@@ -19,5 +19,7 @@
 //Definimos funciones
 void pingIPs(FILE *archivoParam, char *rutaParam);
 bool validarIP(const char *ip);
+bool pedirDosIP(char* ipA, char* ipB);
+bool respuestaPing(char* IP);
 
 #endif      // Fin definición PING_H

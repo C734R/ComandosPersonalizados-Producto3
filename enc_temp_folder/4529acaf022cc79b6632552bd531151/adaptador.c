@@ -26,7 +26,7 @@ void modificarAdaptadorRed(FILE* archivoParam) {
     // Mientras el nombre de adaptador introducido exista
     while (1) {
         // Si no se han podido mostrar los adaptadores, salir
-        if (!mostrarSoloAdaptadores()) {
+        if (!mostrarAdaptadores()) {
             printf("No se puede mostrar la lista de adaptadores. Volviendo... \n\n");
             break;
         }
@@ -87,10 +87,9 @@ bool pedirDatos(FILE* archivoParam) {
     char buffer[1024];
     int tamBuffer = sizeof(buffer);
     char entradaProcesada[1024];
-    int intentos = 0;
 
     // Mientras los carácteres introducidos no cumplan con el formato de una IP
-    while (1 && intentos < 3) {
+    while (1) {
         // Solicitar la IP
         printf("Introduce la IP: ");
         entradaSinNL(buffer, tamBuffer);
@@ -99,7 +98,6 @@ bool pedirDatos(FILE* archivoParam) {
         if (!validarIP(entradaProcesada)) {
             // Mostrar un mensaje de error
             printf("La IP introducida no es válida. Introduce una IP válida.\n");
-            intentos++;
         }
         // Si la IP es válida
         else {
@@ -110,10 +108,8 @@ bool pedirDatos(FILE* archivoParam) {
         }
     }
 
-    if (intentos < 3) intentos = 0;
-
     // Mientras los carácteres introducidos no cumplan con el formato de una máscara
-    while (1 && intentos < 3) {
+    while (1) {
         // Solicitar la máscara
         printf("Introduce la máscara de subred: ");
         entradaSinNL(buffer, tamBuffer);
@@ -122,7 +118,6 @@ bool pedirDatos(FILE* archivoParam) {
         if (!validarIP(entradaProcesada)) {
             // Mostrar un mensaje de error
             printf("La máscara introducida no es válida. Introduce una máscara válida.\n");
-            intentos++;
         }
         // Si la máscara es válida
         else {
@@ -133,10 +128,8 @@ bool pedirDatos(FILE* archivoParam) {
         }
     }
 
-    if (intentos < 3) intentos = 0;
-
     // Mientras los carácteres introducidos no cumplan con el formato de una puerta de enlace
-    while (1 && intentos < 3) {
+    while (1) {
         // Solicitar la puerta de enlace
         printf("Introduce la puerta de enlace: ");
         // Leer la puerta de enlace
@@ -146,7 +139,6 @@ bool pedirDatos(FILE* archivoParam) {
         if (!validarIP(entradaProcesada)) {
             // Mostrar un mensaje de error
             printf("La puerta de enlace introducida no es válida. Introduce una puerta de enlace válida.\n");
-            intentos++;
         }
         // Si la puerta de enlace es válida
         else {
@@ -157,17 +149,6 @@ bool pedirDatos(FILE* archivoParam) {
         }
     }
     fprintf(archivoParam, "-----------------------------------\n\n");
-
-    // Si superamos los intentos el fichero se vacía
-    if (intentos > 2) {
-        printf("Has superado el número máximo de intentos permitidos. Volviendo...\n\n");
-        // Abrir el archivo en modo escritura para vaciarlo
-        freopen(NULL, "w", archivoParam);
-        if (archivoParam == NULL) {
-            perror("Error al intentar vaciar el fichero");
-            return false;
-        }
-    }
 
     // Devolver éxito
 	return true;
@@ -186,7 +167,7 @@ void copiarAdaptadorRed(FILE *archivoParam) {
     int i = 0;
 
     // Si no se han podido mostrar los adaptadores, salir de la función
-    if (!mostrarSoloAdaptadores()) {
+    if (!mostrarAdaptadores()) {
         printf("No se puede mostrar la lista de adaptadores. Volviendo... \n\n");
         return;
     }
@@ -210,19 +191,23 @@ void copiarAdaptadorRed(FILE *archivoParam) {
     i = 0;
     // Mientras haya respuesta del comando ipconfig
     while (fgets(buffer, tamBuffer, consola) != NULL) {
+        // Detectar el inicio de un bloque de adaptador
+        //if (strstr(_buffer, "Adaptador de Ethernet") != NULL || strstr(_buffer, "Adaptador de LAN inal") != NULL){
             
-        // Verificar si es el bloque del adaptador solicitado
-        if (strstr(buffer, entradaProcesada) != NULL && !dentroBloque) {
-            printf("--- Datos del adaptador guardado ---\n");
-            // Establecer que estamos dentro del bloque del adaptador
-            dentroBloque = true;
-            fprintf(archivoParam, "-----------------------------------\n");
-            fprintf(archivoParam, "--- Datos del adaptador guardado ---\n");
-            // Escribir la información en el archivo adaptador.txt y mostrar
-            fprintf(archivoParam, "%s", buffer);
-            printf("%s", buffer);
-        }
-
+            // Verificar si es el bloque del adaptador solicitado
+            if (strstr(buffer, entradaProcesada) != NULL) {
+                printf("--- Datos del adaptador guardado ---\n");
+                // Establecer que estamos dentro del bloque del adaptador
+                dentroBloque = true;
+                fprintf(archivoParam, "-----------------------------------\n");
+                fprintf(archivoParam, "--- Datos del adaptador guardado ---\n");
+                // Escribir la información en el archivo adaptador.txt y mostrar
+                fprintf(archivoParam, "%s", buffer);
+                printf("%s", buffer);
+            }
+            // Si no es el bloque del adaptador solicitado, false
+            else if (strstr(buffer, "Adaptador") != NULL) dentroBloque = false;
+        //}
         // Si estamos dentro del bloque del adaptador
         if (dentroBloque) {
             // Si la línea contiene información relevante
@@ -262,7 +247,7 @@ void addAdaptadorRed(FILE * archivoParam) {
     // Mientras el nombre de adaptador introducido exista
     while (1){
         // Si no se han podido mostrar los adaptadores, salir
-        if (!mostrarSoloAdaptadores()) {
+        if (!mostrarAdaptadores()) {
             break;
         }
         // Si se han podido mostrar
@@ -396,7 +381,6 @@ bool encontrarAdaptador(char* nAdaptador) {
     FILE* consola = NULL;
     char buffer[1024];
     int tamBuffer = sizeof(buffer);
-    char* ptrInicio;
 
     // Crear el comando para obtener la información del adaptador de red que coincida con la IP, la máscara y la puerta de enlace introducidas
     sprintf(comando, "ipconfig | findstr /C:\"%s\" /C:\"IPv4\" /C:\"enlace\" /C:\"subred\" /i", nAdaptador);
@@ -413,24 +397,16 @@ bool encontrarAdaptador(char* nAdaptador) {
         printf("Comando ipconfig ejecutado con éxito.\n\n");
         // Recorerr las líneas de la salida del comando ipconfig
         while (fgets(buffer, tamBuffer, consola) != NULL) {
-            // Detectar el inicio de un bloque de adaptador ethernet
-            if ((ptrInicio = strstr(buffer, "Adaptador de Ethernet ")) != NULL) {
-                ptrInicio += strlen("Adaptador de Ethernet ");
-            }
-            // Detectar el inicio de un bloque de adaptador de LAN inalámbrica
-            else if ((ptrInicio = strstr(buffer, "Adaptador de LAN inal")) != NULL) {
-                ptrInicio += strlen("Adaptador de LAN inal") + 8;
-            }
-            else continue;
-
-            // Eliminar espacios y saltos de línea
-            ptrInicio[strcspn(ptrInicio, "\n")] = '\0';
-
-            // Comparar el nombre del adaptador con el solicitado
-            if (strcmp(ptrInicio, nAdaptador) == 0) {
-                _pclose(consola);
-                printf("El adaptador '%s' existe.\n\n", nAdaptador);
-                return true;
+            // Detectar el inicio de un bloque de adaptador
+            if (strstr(buffer, "Adaptador de Ethernet") != NULL || strstr(buffer, "Adaptador de LAN inal") != NULL) {
+                // Verificar si encontramos el adaptador solicitado
+                if (strstr(buffer, nAdaptador) != NULL) {
+                    // Cerrar la conexión con el comando ipconfig
+                    _pclose(consola);
+                    printf("El adaptador existe.\n\n");
+                    // Registramos que el adaptador ya existe
+                    return true;
+                }
             }
         }
         // Cerrar la conexión con el comando ipconfig

@@ -4,6 +4,8 @@
 // Añadimos librerías necesarias
 #include <stdbool.h>
 
-bool actualizarDNS();
+bool actualizarAutoDNS();
+bool actualizarManualDNS();
+bool actualizarDHCPDNS();
 
 #endif      // Fin definición ACTUALIZARDNS_H

@@ -6,6 +6,8 @@
 #include <windows.h>
 #include "ping.h"
 #include "archivo.h"
+#include "entrada.h"
+#include "fecha.h"
 
 // Función para comprobar ping a IPs
 void pingIPs(FILE *archivoParam, char *rutaParam) {
@@ -21,7 +23,7 @@ void pingIPs(FILE *archivoParam, char *rutaParam) {
     char busqueda [200];
     char buffer[100];
 	int tamBuffer = sizeof(buffer);
-    char ipPositivas[10][16];
+    char ipPositivas[10][16] = { "" };
 
     printf("Introduce la ruta del archivo que contiene las IPs a testear: ");
     entradaSinNL(buffer, tamBuffer);
@@ -180,4 +182,117 @@ bool validarIP(const char *ip) {
 
     // Si todo es correcto evolver verdadero
     return true;
+}
+
+// Función para pedir IP válida
+bool pedirDosIP(char * ipA, char * ipB) {
+    // Declarar variables
+    char buffer[1024];
+    int tamBuffer = sizeof(buffer);
+    char entradaProcesada[1024];
+    int intentos = 0;
+
+    // Mientras los carácteres introducidos no cumplan con el formato de una IP
+    do {
+        // Solicitar la IP
+        printf("Introduce el DNS primario: ");
+        entradaSinNL(buffer, tamBuffer);
+        strcpy(entradaProcesada, buffer);
+
+        // Si la IP no es válida
+        if (!validarIP(entradaProcesada)) {
+            // Mostrar un mensaje de error
+            printf("La IP introducida no es válida. Introduce una IP válida.\n\n");
+            intentos++;
+            continue;
+        }
+
+        // Si la IP es válida y responde a ping
+        if (respuestaPing(entradaProcesada)) {
+            // Registrar la IP en el archivo adaptador.txt
+            strcpy(ipA, entradaProcesada);
+            // Salir del bucle
+            break;
+        }
+        intentos++;
+
+    } while (1 && intentos < 3);
+
+    if (intentos < 3) intentos = 0;
+
+    // Mientras los carácteres introducidos no cumplan con el formato de una IP
+    do {
+        // Solicitar la IP
+        printf("Introduce el DNS secundario: ");
+        entradaSinNL(buffer, tamBuffer);
+        strcpy(entradaProcesada, buffer);
+
+        // Si la IP no es válida
+        if (!validarIP(entradaProcesada)) {
+            // Mostrar un mensaje de error
+            printf("La IP introducida no es válida. Introduce una IP válida.\n\n");
+            intentos++;
+            continue;
+        }
+
+        // Si la IP es válida y responde a ping
+        if (respuestaPing(entradaProcesada)) {
+            // Registrar la IP en el archivo adaptador.txt
+            strcpy(ipB, entradaProcesada);
+            // Salir del bucle
+            break;
+        }
+    } while (1 && intentos < 3);
+
+    // Si se superan los intentos máximos, volvemos
+    if (intentos > 2) {
+        printf("Máximos intentos superados. Volviendo...\n\n");
+        return false;
+    }
+
+    // Informamos y devolvemos éxito
+    printf("DNSs correctamente introducidos y validados.\n\n");
+    return true;
+}
+
+// Función para comprobar la respuesta de una IP válida
+bool respuestaPing(char* IP) {
+    
+    // Declaración de variables
+    FILE* ping = NULL;
+    char comando[100];
+    char lectura[100];
+    bool respuesta = false;
+    char busqueda[200];
+
+    printf("\nTesteando IP: %s ...\n", IP);
+
+    // Comando para ejecutar el ping
+    sprintf(comando, "ping -n 1 %s", IP);
+    ping = _popen(comando, "r");
+    if (ping == NULL) {
+        printf("Error al ejecutar el comando ping.\n");
+        return false;
+    }
+
+    // Leer la salida del comando ping
+    while (fgets(lectura, sizeof(lectura), ping) != NULL) {
+
+        sprintf(busqueda, "Respuesta desde %s", IP);
+        // Si obtenemos respuesta, registramos e informamos
+        if (strstr(lectura, busqueda) != NULL) {
+            respuesta = true;
+            printf("¡¡ %s obtenida !!\n\n", busqueda);
+            break;
+        }
+    }
+
+    // Si no recibimos respuesta, informamos
+    if (!respuesta) printf("No se ha recibido respuesta de la IP %s.\n\n", IP);
+
+    // Cerrar la conexión con el comando ping
+    _pclose(ping);
+
+    // Devolver resultado
+    return respuesta;
 }

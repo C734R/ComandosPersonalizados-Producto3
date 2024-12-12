@@ -53,20 +53,7 @@ bool mostrarArchivoDNS(char * rutaDNS) {
 	return true;
 }
 
-char * pedirAdaptador() {
-	// Declaración de variables
-	char buffer[1024];
-	int tamBuffer = 1024;
-	char adaptador[1024];
-
-	// Pedir el adaptador de red del que se quiere actualizar la DNS
-	printf("Introduce el nombre del adaptador de red del que quieres actualizar el DNS: ");
-	entradaSinNL(buffer, tamBuffer);
-	strcpy(adaptador, buffer);
-	//printf("Adaptador de red introducido: %s\n", adaptador);
-	return adaptador;
-}
-
+// Función para mostrar el DNS de un adaptador y registrar los resultados en un fichero
 bool mostrarDNSAdaptador(char* adaptador, char * rutaAdaptador) {
 	// Declaración de variables
 	char buffer[1024];
@@ -130,28 +117,20 @@ bool mostrarDNSAdaptador(char* adaptador, char * rutaAdaptador) {
 				// Guardamos la dirección de inicio del número
 				inicio = puntero;
 
-				// Recorrer cada carácter hasta el final de la IP
+				// Recorrer el resto del buffer y contar puntos
 				while (*puntero != '\0' && (isdigit(*puntero) || *puntero == '.')) {
-					// Si el carácter es un punto, lo contamos
 					if (*puntero == '.') puntos++;
 					puntero++;
 				}
 
-				// Si encontramos 3 puntos puede ser una IP válida
+				// Si encontramos 3 puntos puede ser una IP. Comprobamos longitud y registramos
 				if (puntos == 3) {
-					// Calculamos la longitud de la IP restando el puntero de inicio al puntero actual
 					longitudIP = puntero - inicio;
-					// Si la longitud de la IP es menor de 16 caracteres la ip es válida
 					if (longitudIP < 16) {
-						// Copiamos la IP en la variable ip
 						strncpy(ip, inicio, longitudIP);
-						// Añadimos el carácter de fin de cadena
 						ip[longitudIP] = '\0';
-						// Mostramos la IP encontrada
 						printf("Encontrada IP: %s\n", ip);
-						// Guardamos la IP en el archivo adaptadorDNS.txt
 						fprintf(adaptadorDNS, "%s\n", ip);
-						// Marcamos que hemos encontrado una IP válida
 						ipOK = true;
 					}
 				}
@@ -175,7 +154,7 @@ bool mostrarDNSAdaptador(char* adaptador, char * rutaAdaptador) {
 	return true;
 }
 
-// Función para vaciar los archivos de DNS
+// Función para vaciar los archivos temporales de DNS
 bool vaciarArchivosDNS(char* rutaAdaptador, char* rutaVelocidadFichero, char* rutaVelocidadAdaptador, char* rutaResultado, char* rutaResultadoCombinado) {
 	if (!vaciarArchivo(rutaAdaptador)) return false;
 	if (!vaciarArchivo(rutaVelocidadFichero)) return false;
@@ -185,6 +164,7 @@ bool vaciarArchivosDNS(char* rutaAdaptador, char* rutaVelocidadFichero, char* ru
 	return true;
 }
 
+// Función para comprobar la velocidad de direcciones DNS de un fichero y registrar los resultados 
 bool checkVelocidadDNS(char * rutaDNS, char * rutaResultado) {
 	// Declaración de variables
 	FILE* archivoDNS = NULL;
@@ -224,31 +204,25 @@ bool checkVelocidadDNS(char * rutaDNS, char * rutaResultado) {
 			return false;
 		}
 		bool respuesta = false;
+
 		// Leer la salida del comando ping
 		while (fgets(buffer, tamBuffer, pingDNS) != NULL) {
 
 			// Componer el texto a buscar
 			sprintf(busqueda, "Respuesta desde %s", ip);
-			// Buscar la coincidencia de la IP en la respuesta del ping
+
+			// Buscar la coincidencia de la IP en la respuesta del ping, guardar IP y registrar que ha habido respuesta
 			coincidencia_ip = strstr(buffer, busqueda);
-			// Si la respuesta es positiva
 			if (coincidencia_ip != NULL && respuesta == false) {
-				// Guardar la IP en el array de IPs positivas
 				strcpy(ipPositivas[numIPs], ip);
-				// Registrar que ya ha habido al menos una respuesta
 				respuesta = true;
 			}
 
-			// Buscar la coincidencia del tiempo de respuesta en la respuesta del ping
+			// Buscar la coincidencia del tiempo de respuesta en la respuesta del ping y registrar eliminando "ms"
 			coincidencia_tiempo = strstr(buffer, "Media = ");
 			if (coincidencia_tiempo != NULL) {
-				// Guardar el tiempo de respuesta en la variable tiempo
 				strcpy(tiempo[numIPs], coincidencia_tiempo + 8);
-				// Quitar el texto "ms" del final del tiempo
 				strcpy(tiempo[numIPs], strtok(tiempo[numIPs], "ms"));
-				// Mostrar el tiempo de respuesta para la IP
-				//printf("Tiempo de respuesta para IP %s: %s ms\n", ip, tiempo[numIPs]);
-				// Incrementar contador IPs
 				numIPs++;
 			}
 
@@ -273,7 +247,8 @@ bool checkVelocidadDNS(char * rutaDNS, char * rutaResultado) {
 	printf("\n--- Resumen de resultados ---\n");
 	if (numIPs == 0) {
 		printf("No hubo respuestas positivas.\n");
-		return false;
+		printf("-----------------------------------\n\n");
+		return true;
 	}
 	printf("IPs que respondieron al ping:\n");
 	for (int i = 0; i < numIPs; i++) {
@@ -367,6 +342,7 @@ bool checkSaltosDNS(char* rutaDNS, char* rutaResultado) {
 	return true; 
 }
 
+// Función para combinar los resultados DNS de dos ficheros temporales en uno solo
 bool combinarFicheros(char* rutaA, char* rutaB, char * rutaC) {
 
 	// Declaración de variables
@@ -462,14 +438,14 @@ bool compararDNS(char * rutaResultados, char * ipRapidaA, char * ipRapidaB, bool
 
 	// Si no se han encontrado IPs con respuesta al ping
 	if (strcmp(tiempoRapidoA, "9999") == 0) {
-		printf("No se han encontrado IPs con respuesta al ping.\n");
+		printf("No se han encontrado IPs con respuesta al ping.\n\n");
 		return false;
 	}
 
 	// Si las velocidades son diferentes
 	if (strcmp(tiempoRapidoA,tiempoRapidoB) != 0) {
 		// Mostrar la DNS más rápida
-		printf("Las DNS más rápidas son %s con un tiempo de respuesta de %s ms y %s con un tiempo de respuesta de %s ms.\n", ipRapidaA, tiempoRapidoA, ipRapidaB, tiempoRapidoB);
+		printf("Las DNS más rápidas son %s con un tiempo de respuesta de %s ms y %s con un tiempo de respuesta de %s ms.\n\n", ipRapidaA, tiempoRapidoA, ipRapidaB, tiempoRapidoB);
 		// Cerrar el archivo
 		fclose(archivoResultados);
 		*empate = false;
@@ -478,7 +454,7 @@ bool compararDNS(char * rutaResultados, char * ipRapidaA, char * ipRapidaB, bool
 	}
 
 	// Si no lo son, mostrar las IPs más rápidas
-	printf("Hay dos IPs con el mismo tiempo de respuesta más rápido: %s y %s con %s ms.\n", ipRapidaA, ipRapidaB, tiempoRapidoA);
+	printf("Hay dos IPs con el mismo tiempo de respuesta más rápido: %s y %s con %s ms.\n\n", ipRapidaA, ipRapidaB, tiempoRapidoA);
 	*empate = true;
 
 	// Cerrar el archivo
@@ -517,13 +493,15 @@ char * saltosDNS (char * ipRapidaA, char * ipRapidaB, bool * empate) {
 
 	// Leer la salida del comando tracert
 	while (fgets(buffer, tamBuffer, consola) != NULL) {
-		// Comprobar respuesta
+		// Mostrar respuesta
 		printf("%s",buffer);
-		// Buscamos un espacio en el inicio de la línea
+
+		// Buscamos un espacio en el inicio de la línea, lo que indica un salto
 		if (buffer[0] == ' ' && espacio == false) {
 			espacio = true;
 		}
-		// Buscamos un dígito en la línea
+
+		// Buscamos un dígito en la línea para registrar el salto
 		if (espacio == true && buffer[2] >= '0' && buffer[2] <= '9' && digito == false) {
 			saltosA++;
 			digito = true;
@@ -556,11 +534,13 @@ char * saltosDNS (char * ipRapidaA, char * ipRapidaB, bool * empate) {
 	while (fgets(buffer, tamBuffer, consola) != NULL) {
 		// Comprobar respuesta
 		printf("%s", buffer);
-		// Buscamos un espacio en el inicio de la línea
+
+		// Buscamos un espacio en el inicio de la línea, lo que indica un salto
 		if (buffer[0] == ' ' && espacio == false) {
 			espacio = true;
 		}
-		// Buscamos un dígito en la línea
+
+		// Buscamos un dígito en la línea para registrar el salto
 		if (espacio == true && buffer[2] >= '0' && buffer[2] <= '9' && digito == false) {
 			saltosB++;
 			digito = true;
@@ -580,19 +560,19 @@ char * saltosDNS (char * ipRapidaA, char * ipRapidaB, bool * empate) {
 	// Comparar los saltos de las DNS y seleccionar según resultados
 	// Si las DNS tienen el mismo número de saltos
 	if (saltosA == saltosB) {
-		printf("Las IPs tienen el mismo número de saltos. Por defecto se selecciona la primera IP como la primaria.\n");
+		printf("Las IPs tienen el mismo número de saltos. Por defecto se selecciona la primera IP, %s, como la primaria.\n\n", ipRapidaA);
 		*empate = true;
 		return ipRapidaA;
 	}
 	// Si la IP A tiene menos saltos que la IP B
 	else if (saltosA < saltosB) {
-		printf("La IP %s tiene menos saltos que la IP %s. Se selecciona la IP %s como primaria.\n", ipRapidaA, ipRapidaB, ipRapidaA);
+		printf("La IP %s tiene menos saltos que la IP %s. Se selecciona la IP %s como primaria.\n\n", ipRapidaA, ipRapidaB, ipRapidaA);
 		*empate = false;
 		return ipRapidaA;
 	}
 	// Si la IP B tiene menos saltos que la IP A
 	else {
-		printf("La IP %s tiene menos saltos que la IP %s. Se selecciona la IP %s como primaria.\n", ipRapidaB, ipRapidaA, ipRapidaB);
+		printf("La IP %s tiene menos saltos que la IP %s. Se selecciona la IP %s como primaria.\n\n", ipRapidaB, ipRapidaA, ipRapidaB);
 		*empate = false;
 		return ipRapidaB;
 	}
@@ -647,6 +627,9 @@ bool compararAdaptador(char * adaptador, char * ipA, char * ipB, bool * A, bool 
 	else if (*A) printf("La IP %s ya está configurada en el adaptador %s.\n", ipA, adaptador);
 	// Si la IP B está en el adaptador
 	else if (*B) printf("La IP %s ya está configurada en el adaptador %s.\n", ipB, adaptador);
+
+	printf("\n");
+
 	// Devolver éxito
 	return true;
 }
@@ -681,10 +664,38 @@ bool modificarDNS(char* adaptador, char* ipA, char* ipB, bool* A, bool* B, bool*
 	printf("\n");
 
 	// Informamos de la actualización de las DNS
-	if ((!*A || !*B) || (*A && *B && !orden)) printf("Actualizando DNS ...\n");
-	// Comando para establecer la primera DNS
-	if (!*A) {
-		sprintf(comando, "netsh interface ip set dns \"%s\" static %s", adaptador, ipA);
+	if ((!*A || !*B) || (*A && *B && !orden)) {
+
+		printf("Actualizando DNS ...\n\n");
+
+		// Comando para borrar DNSs adaptador mediante la activación de DHCP
+		sprintf(comando, "netsh interface ip set dns \"%s\" dhcp", adaptador);
+
+		// Ejecutar el comando
+		consola = _popen(comando, "r");
+		if (consola == NULL) {
+			printf("Error al ejecutar el comando netsh.\n");
+			return false;
+		}
+
+		// Cerrar la conexión con el comando netsh
+		_pclose(consola);
+
+		// Comando para establecer de nuevo configuracion
+		sprintf(comando, "netsh interface ip set dns \"%s\" static none", adaptador);
+
+		// Ejecutar el comando
+		consola = _popen(comando, "r");
+		if (consola == NULL) {
+			printf("Error al ejecutar el comando netsh.\n");
+			return false;
+		}
+
+		// Cerrar la conexión con el comando netsh
+		_pclose(consola);
+
+		// Comando para establecer la primera DNS
+		sprintf(comando, "netsh interface ip add dns \"%s\" %s index=1", adaptador, ipA);
 
 		// Ejecutar el comando
 		consola = _popen(comando, "r");
@@ -697,10 +708,8 @@ bool modificarDNS(char* adaptador, char* ipA, char* ipB, bool* A, bool* B, bool*
 		_pclose(consola);
 
 		// Mostrar un mensaje de éxito
-		printf("DNS primaria actualizada con éxito.\n");
-	}
+		printf("DNS primaria actualizada con éxito.\n\n");
 
-	if (!*B) {
 		// Comando para establecer la segunda DNS
 		sprintf(comando, "netsh interface ip add dns \"%s\" %s index=2", adaptador, ipB);
 
@@ -715,14 +724,81 @@ bool modificarDNS(char* adaptador, char* ipA, char* ipB, bool* A, bool* B, bool*
 		_pclose(consola);
 
 		// Mostrar un mensaje de éxito
-		printf("DNS secundaria actualizada con éxito.\n");
+		printf("DNS secundaria actualizada con éxito.\n\n");
 	}
 
 	// Devolver éxito
 	return true;
-
 }
 
+// Función para actualizar las DNS de un adaptador de red
+bool establecerDNS(char* adaptador, char* ipA, char* ipB) {
+	// Declaración de variables
+	char comando[1024];
+	FILE* consola = NULL;
+	int tamBuffer = 1024;
+	char ipPrimaria[16] = { "" };
+	char ipSecundaria[16] = { "" };
+
+	printf("Aplicando DNSs ...\n\n");
+
+	// Comando para borrar DNSs adaptador mediante la activación de DHCP
+	if (!adaptadorDHCP(adaptador)) {
+		printf("Error al establecer la configuración del adaptador en modo DHCP. Volviendo...\n\n");
+		return false;
+	}
+
+	// Comando para establecer de nuevo configuracion
+	sprintf(comando, "netsh interface ip set dns \"%s\" static none", adaptador);
+
+	// Ejecutar el comando
+	consola = _popen(comando, "r");
+	if (consola == NULL) {
+		printf("Error al ejecutar el comando netsh.\n");
+		return false;
+	}
+
+	// Cerrar la conexión con el comando netsh
+	_pclose(consola);
+
+	// Comando para establecer la primera DNS
+	sprintf(comando, "netsh interface ip add dns \"%s\" %s index=1", adaptador, ipA);
+
+	// Ejecutar el comando
+	consola = _popen(comando, "r");
+	if (consola == NULL) {
+		printf("Error al ejecutar el comando netsh.\n");
+		return false;
+	}
+
+	// Cerrar la conexión con el comando netsh
+	_pclose(consola);
+
+	// Mostrar un mensaje de éxito
+	printf("DNS primaria actualizada con éxito.\n\n");
+
+	// Comando para establecer la segunda DNS
+	sprintf(comando, "netsh interface ip add dns \"%s\" %s index=2", adaptador, ipB);
+
+	// Ejecutar el comando
+	consola = _popen(comando, "r");
+	if (consola == NULL) {
+		printf("Error al ejecutar el comando netsh.\n");
+		return false;
+	}
+
+	// Cerrar la conexión con el comando netsh
+	_pclose(consola);
+
+	// Mostrar un mensaje de éxito
+	printf("DNS secundaria actualizada con éxito.\n\n");
+	
+
+	// Devolver éxito
+	return true;
+}
+
+// Función para mostrar y poder verificar la configuración DNS aplicada
 bool verificarDNS(char* adaptador) {
 	// Declaración de variables
 	char comando[1024];
@@ -756,3 +832,29 @@ bool verificarDNS(char* adaptador) {
 	// Devolver éxito
 	return true;
 }
+
+// Función para establecer modo DHCP en adaptador seleccionado
+bool adaptadorDHCP(char * adaptador) {
+	// Declaración de variables
+	FILE* consola = NULL;
+	char comando[1024];
+
+	// Comando para establecer la activación de DHCP
+	sprintf(comando, "netsh interface ip set dns \"%s\" dhcp", adaptador);
+
+	// Ejecutar el comando
+	consola = _popen(comando, "r");
+	if (consola == NULL) {
+		printf("Error al ejecutar el comando netsh.\n");
+		return false;
+	}
+
+	printf("Comando netsh ejecutado con éxito.\n\n");
+
+	// Cerrar la conexión con el comando netsh
+	_pclose(consola);
+
+	// Devolver éxito
+	return true;
+}
+
