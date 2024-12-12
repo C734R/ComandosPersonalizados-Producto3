@@ -396,7 +396,13 @@ bool encontrarAdaptador(char* nAdaptador) {
     FILE* consola = NULL;
     char buffer[1024];
     int tamBuffer = sizeof(buffer);
-    char* ptrInicio;
+    char* ptrInicio = NULL;
+    int longitud = strlen(nAdaptador);
+    char* coincidencia = (char*)malloc(longitud + 1);
+    if (!coincidencia) {
+        perror("Error al reservar memoria");
+        return false;
+    }
 
     // Crear el comando para obtener la información del adaptador de red que coincida con la IP, la máscara y la puerta de enlace introducidas
     sprintf(comando, "ipconfig | findstr /C:\"%s\" /C:\"IPv4\" /C:\"enlace\" /C:\"subred\" /i", nAdaptador);
@@ -423,8 +429,7 @@ bool encontrarAdaptador(char* nAdaptador) {
             }
             else continue;
 
-            // Eliminar espacios y saltos de línea
-            ptrInicio[strcspn(ptrInicio, "\n")] = '\0';
+
 
             // Comparar el nombre del adaptador con el solicitado
             if (strcmp(ptrInicio, nAdaptador) == 0) {
