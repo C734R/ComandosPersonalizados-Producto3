@@ -18,7 +18,7 @@ int main() {
     do {
         // Menú principal
         printf("Bienvenid@ al programa.\n");
-        printf("--- Menú Principal ---\n");
+        printf("--- Menú Principal Producto 3---\n");
         printf("1. Actualizar DNS de adaptador mediante archivo.\n");
         printf("2. Establecer DNS de adaptador manualmente. (Extra)\n");
         printf("3. Adaptador en modo DHCP. (Extra)\n");

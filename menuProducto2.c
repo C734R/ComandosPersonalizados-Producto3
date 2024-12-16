@@ -25,7 +25,7 @@ int menuProducto2() {
     do {
         // Menú principal
         printf("Bienvenid@ al programa.\n");
-        printf("--- Menú Principal ---\n");
+        printf("--- Menú Principal Producto 2 ---\n");
         printf("1. Insertar fecha y hora.\n");
         printf("2. Comprobar IPs.\n");
 		printf("3. Mostrar adaptadores de red y registrar nuevos parámetros.\n");

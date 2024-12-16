@@ -33,7 +33,7 @@ bool actualizarAutoDNS() {
 	bool B = false;
 	bool orden = false;
 
-	printf("*** Solicitar nombre de adaptador ***\n\n");
+	printf("*** Solicitar ruta del fichero de direcciones DNS ***\n\n");
 	
 	// Pedir la ruta del archivo de DNS hasta que se introduzca una válida o se superen los intentos
 	do {
@@ -42,16 +42,17 @@ bool actualizarAutoDNS() {
 
 		// Comprobar si el archivo existe y es accesible
 		if (existeArchivo(rutaDNS)) {
-			printf("Archivo accesible.\nArchivo de DNS introducido: %s\n", rutaDNS);
+			printf("Archivo accesible.\n\n");
+			//printf("Archivo de DNS introducido: %s\n", rutaDNS);
 			break;
 		}
-		printf("Error al abrir el archivo. Introduce una ruta válida.\n");
+		printf("Error al abrir el archivo. Introduce una ruta válida.\n\n");
 		contador++;
 	} while (1 && contador < 2);
 
 	// Si se han superado los intentos
 	if (contador > 2) {
-		printf("Demasiados intentos fallidos. Volviendo...\n");
+		printf("Demasiados intentos fallidos. Volviendo...\n\n");
 		return false;
 	}
 
@@ -61,6 +62,8 @@ bool actualizarAutoDNS() {
 	}
 
 	pausaEnter();
+
+	printf("*** Solicitar nombre de adaptador ***\n\n");
 
 	// Pedir el nombre del adaptador de red hasta que se elija existente o se decida salir
 	do {
@@ -78,7 +81,7 @@ bool actualizarAutoDNS() {
 		if (strcmp(buffer, "s") == 0) {
 			continue;
 		}
-		printf("Volviendo...\n");
+		printf("Volviendo...\n\n");
 		return false;
 	} while (1);
 
@@ -86,7 +89,7 @@ bool actualizarAutoDNS() {
 
 	// Vaciar los archivos temporales
 	if (!vaciarArchivosDNS(RUTA_ADAPTADOR, RUTA_VELOCIDAD_FICHERO, RUTA_VELOCIDAD_ADAPTADOR, RUTA_RESULTADO, RUTA_RESULTADO_COMBINADO)) {
-		printf("Error al vaciar los archivos temporales. Volviendo...\n");
+		printf("Error al vaciar los archivos temporales. Volviendo...\n\n");
 		return false;
 	}
 
@@ -94,7 +97,7 @@ bool actualizarAutoDNS() {
 
 	// Mostrar las DNS del adaptador de red seleccionado y guardar en archivo
 	if (!mostrarDNSAdaptador(adaptador, RUTA_ADAPTADOR)) {
-		printf("Error al mostrar las DNS del adaptador de red. Volviendo...\n");
+		printf("Error al mostrar las DNS del adaptador de red. Volviendo...\n\n");
 		return false;
 	}
 
@@ -102,7 +105,7 @@ bool actualizarAutoDNS() {
 
 	// Comprobar velocidad y saltos DNS del fichero y guardar en fichero temporal
 	if (!checkVelocidadDNS(rutaDNS, RUTA_VELOCIDAD_FICHERO)) {
-		printf("Error al comprobar la velocidad de las DNS del archivo. Volviendo...\n");
+		printf("Error al comprobar la velocidad de las DNS del archivo. Volviendo...\n\n");
 		return false;
 	}
 
@@ -110,7 +113,7 @@ bool actualizarAutoDNS() {
 
 	// Comprobar velocidad y saltos DNS del adaptador y guardar en fichero temporal
 	if (!checkVelocidadDNS(RUTA_ADAPTADOR, RUTA_VELOCIDAD_ADAPTADOR)) {
-		printf("Error al comprobar la velocidad de las DNS del adaptador. Volviendo...\n");
+		printf("Error al comprobar la velocidad de las DNS del adaptador. Volviendo...\n\n");
 		return false;
 	}
 
@@ -118,7 +121,7 @@ bool actualizarAutoDNS() {
 
 	// Combinar los ficheros de velocidad
 	if (!combinarFicheros(RUTA_VELOCIDAD_FICHERO, RUTA_VELOCIDAD_ADAPTADOR, RUTA_RESULTADO_COMBINADO)) {
-		printf("Error al combinar los ficheros de velocidad. Volviendo...\n");
+		printf("Error al combinar los ficheros de velocidad. Volviendo...\n\n");
 		return false;
 	}
 
@@ -126,7 +129,7 @@ bool actualizarAutoDNS() {
 
 	// Comprobar las DNS más rápidas y guardar en variables
 	if (!compararDNS(RUTA_RESULTADO_COMBINADO, ipRapidaA, ipRapidaB, &empate)) {
-		printf("Error al comparar las DNS. Volviendo...\n");
+		printf("Error al comparar las DNS. Volviendo...\n\n");
 		return false;
 	}
 
@@ -140,7 +143,7 @@ bool actualizarAutoDNS() {
 		
 		// Si no se ha devuelto ninguna IP
 		if (ipSaltos == NULL) {
-			printf("Error al comprobar los saltos de las DNS. Volviendo...\n");
+			printf("Error al comprobar los saltos de las DNS. Volviendo...\n\n");
 			return false;
 		}
 
@@ -159,7 +162,7 @@ bool actualizarAutoDNS() {
 
 	// Comparar las DNS finalistas con las del adaptador
 	if (!compararAdaptador(adaptador, ipRapidaA, ipRapidaB, &A, &B, &orden, RUTA_ADAPTADOR)) {
-		printf("Error al comparar las DNS con las del adaptador. Volviendo...\n");
+		printf("Error al comparar las DNS con las del adaptador. Volviendo...\n\n");
 		return 1;
 	}
 
@@ -175,7 +178,7 @@ bool actualizarAutoDNS() {
 
 	// Verificar la configuración de las DNS
 	if (!verificarDNS(adaptador)) {
-		printf("Error al verificar la configuración del adaptador. Volviendo...");
+		printf("Error al verificar la configuración del adaptador. Volviendo...\n\n");
 	}
 
 	// Devolver éxito
@@ -223,7 +226,7 @@ bool actualizarManualDNS() {
 
 	// Verificar la configuración de las DNS
 	if (!verificarDNS(adaptador)) {
-		printf("Error al verificar la configuración del adaptador. Volviendo...");
+		printf("Error al verificar la configuración del adaptador. Volviendo...\n\n");
 	}
 
 	// Devolver éxito

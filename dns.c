@@ -34,7 +34,7 @@ bool mostrarArchivoDNS(char * rutaDNS) {
 
 	// Intentar abrir el archivo y mostrar un mensaje de éxito o error
 	if(!abrirArchivo(rutaDNS, "r", &archivoDNS)){
-		printf("Error al abrir el archivo.\n");
+		printf("Error al abrir el archivo.\n\n");
 		return false;
 	}
 	printf("Archivo abierto con éxito.\n\n");
