@@ -72,13 +72,14 @@ bool actualizarAutoDNS() {
 		strcpy(adaptador,pedirAdaptador());
 		// Comprobar elección de adaptador
 		if (encontrarAdaptador(adaptador)) break;
-		printf("Adaptador no encontrado. ¿Desea introducir otro adaptador? (s/otro = salir): ");
+		// Si no encuentra, pregunta si quiere reintentar
+		printf("Adaptador no encontrado. ¿Desea introducir otro adaptador? (si = sí / otro = salir): ");
 		entradaSinNL(buffer, tamBuffer);
 		if (strcmp(buffer, "s") == 0) {
 			continue;
 		}
 		printf("Volviendo...\n");
-		return 1;
+		return false;
 	} while (1);
 
 	printf("*** Vaciar archivos temporales ***\n\n");
@@ -192,7 +193,7 @@ bool actualizarManualDNS() {
 	printf("*** Solicitar nombre de adaptador ***\n\n");
 
 	// Pedir el nombre del adaptador de red hasta que se elija existente o se decida salir
-	if (!pedirAdaptadorReintentos(adaptador)) {
+	if (!pedirAdaptadorReintentos(adaptador, true)) {
 		return false;
 	}
 
@@ -236,7 +237,7 @@ bool actualizarDHCPDNS() {
 	printf("*** Petición de adaptador ***\n\n");
 
 	// Pedir el nombre del adaptador de red hasta que se elija existente o se decida salir
-	if (!pedirAdaptadorReintentos(adaptador)) {
+	if (!pedirAdaptadorReintentos(adaptador, true)) {
 		return false;
 	}
 

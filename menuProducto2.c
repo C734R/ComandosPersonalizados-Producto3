@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "menuProducto2.h"
+#include "operacionesAdaptador.h"
 #include "entrada.h"
 #include "fecha.h"
 #include "ping.h"

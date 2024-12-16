@@ -1,11 +1,3 @@
-// Diseñar una función cuya funcionalidad que muestre los adaptadores de red de la máquina local. 
-// Se mostrará y almacenará en un archivo adaptador.txt la información para un adaptador de red; 
-// él cual, se preguntará previamente al usuario (elegido por el usuario) su IP, máscara, y puerta 
-// de enlace. El resto de configuraciones de red no se han de mostrar esta información. Para 
-// realizar lo anterior la función lanzará un comando de dos que le proporcionará la información 
-// que necesita junto con otra que no se considera relevante, y será capaz de extraer y mostrar 
-// la que se ha detallado. (menú punto3)*/
-
 // Añadir librerías necesarias
 #include <stdio.h>
 #include <stdlib.h>
@@ -15,70 +7,37 @@
 #include "entrada.h"
 #include "ping.h"
 
-void modificarAdaptadorRed(FILE* archivoParam) {
+
+bool registrarDatosAdaptador(FILE* archivoParam, char* adaptador) {
     char buffer[1024];
     int tamBuffer = sizeof(buffer);
-    char entradaProcesada[1024];
-    FILE* consola = NULL;
-    int i = 0;
-    bool bAdaptador = false;
 
-    // Mientras el nombre de adaptador introducido exista
-    while (1) {
-        // Si no se han podido mostrar los adaptadores, salir
-        if (!mostrarSoloAdaptadores()) {
-            printf("No se puede mostrar la lista de adaptadores. Volviendo... \n\n");
-            break;
-        }
-        // Pedir el nombre del adaptador de red
-        printf("Introduce el nombre del adaptador de red que quieres modificar: ");
-        entradaSinNL(buffer, tamBuffer);
-        strcpy(entradaProcesada, buffer);
-        printf("Adaptador de red introducido: %s\n", entradaProcesada);
+    // Registrar el nombre del adaptador en el archivo adaptador.txt
+    fprintf(archivoParam, "-----------------------------------\n");
+    fprintf(archivoParam, "Adaptador de Red %s\n", adaptador);
+    fprintf(archivoParam, "-----------------------------------\n");
+    // Mostrar un mensaje de éxito
+    printf("Nombre del adaptador registrado con éxito.\n\n");
 
-        // Si se encuentra el adaptador
-        if (encontrarAdaptador(entradaProcesada)) {
-            bAdaptador = true;
-            break;
-        }
-        // Si no se encuentra el adaptador
-        else {
-            printf("El adaptador no existe. Introduce otro nombre.\n\n");
-            bAdaptador = false;
-        }
+    // Pedir datos del adaptador
+    if (!pedirDatos(archivoParam)) {
+        printf("Error en la introducción de datos");
+        fclose(archivoParam);
+        return false;
     }
 
-    // Si existe el adaptador
-    if (bAdaptador) {
-
-        // Registrar el nombre del adaptador en el archivo adaptador.txt
-        fprintf(archivoParam, "-----------------------------------\n");
-        fprintf(archivoParam, "Adaptador de Red %s\n", entradaProcesada);
-        fprintf(archivoParam, "-----------------------------------\n");
-        // Mostrar un mensaje de éxito
-        printf("Nombre del adaptador registrado con éxito.\n\n");
-
-        // Pedir datos del adaptador
-        if (!pedirDatos(archivoParam)) {
-            printf("Error en la introducción de datos");
-            fclose(archivoParam);
-            return;
-        }
-
-        // Volver al inicio del archivo
-        rewind(archivoParam);
-        // Mostar el contenido del archivo adaptador.txt
-        while (fgets(buffer, tamBuffer, archivoParam) != NULL) {
-            // Mostrar el contenido del archivo
-            printf("%s", buffer);
-        }
-
-        // Mostrar un mensaje de éxito
-        printf("Se han registrado con éxito los datos del adaptador introducidos.\n\n");
+    printf("\n");
+    // Volver al inicio del archivo
+    rewind(archivoParam);
+    // Mostar el contenido del archivo adaptador.txt
+    while (fgets(buffer, tamBuffer, archivoParam) != NULL) {
+        // Mostrar el contenido del archivo
+        printf("%s", buffer);
     }
 
-    // Cerrar el archivo
-    fclose(archivoParam);
+    // Mostrar un mensaje de éxito
+    printf("Se han registrado con éxito los datos del adaptador introducidos.\n\n");
+    return true;
 }
 
 // Función para pedir datos de un adaptador de red
@@ -156,7 +115,7 @@ bool pedirDatos(FILE* archivoParam) {
             break;
         }
     }
-    fprintf(archivoParam, "-----------------------------------\n\n");
+    if (intentos < 3) fprintf(archivoParam, "-----------------------------------\n\n");
 
     // Si superamos los intentos el fichero se vacía
     if (intentos > 2) {
@@ -164,9 +123,10 @@ bool pedirDatos(FILE* archivoParam) {
         // Abrir el archivo en modo escritura para vaciarlo
         freopen(NULL, "w", archivoParam);
         if (archivoParam == NULL) {
-            perror("Error al intentar vaciar el fichero");
+            perror("Error al intentar vaciar el fichero.\n\n");
             return false;
         }
+        return false;
     }
 
     // Devolver éxito
@@ -174,149 +134,6 @@ bool pedirDatos(FILE* archivoParam) {
 }
 
 
-// Función para copiar la información de un adaptador de red en un archivo
-void copiarAdaptadorRed(FILE *archivoParam) {
-
-    char buffer[1024];
-    int tamBuffer = sizeof(buffer);
-    char entradaProcesada[1024];
-    char comando[2048];
-    bool dentroBloque = false;
-    FILE* consola = NULL;
-    int i = 0;
-
-    // Si no se han podido mostrar los adaptadores, salir de la función
-    if (!mostrarSoloAdaptadores()) {
-        printf("No se puede mostrar la lista de adaptadores. Volviendo... \n\n");
-        return;
-    }
-    // Pedir el nombre del adaptador de red
-    printf("Introduce el nombre del adaptador de red del que quieres guardar su información: ");
-    entradaSinNL(buffer, tamBuffer);
-    strcpy(entradaProcesada, buffer);
-    printf("Adaptador de red introducido: %s\n", entradaProcesada);
-    // Si no se ha encontrado el adaptador, salir de la función
-    if (!encontrarAdaptador(entradaProcesada)) {
-        printf("Adaptador de red no encontrado. Volviendo... \n\n");
-        return;
-    }
-
-    // Crear el comando para obtener la información del adaptador de red 
-    sprintf(comando, "ipconfig | findstr /C:\"%s\" /C:\"IPv4\" /C:\"enlace\" /C:\"subred\" /i", entradaProcesada);
-    // Ejecutar el comando definido
-    consola = _popen(comando, "r");
-    
-    // Inicializar contador
-    i = 0;
-    // Mientras haya respuesta del comando ipconfig
-    while (fgets(buffer, tamBuffer, consola) != NULL) {
-            
-        // Verificar si es el bloque del adaptador solicitado
-        if (strstr(buffer, entradaProcesada) != NULL && !dentroBloque) {
-            printf("--- Datos del adaptador guardado ---\n");
-            // Establecer que estamos dentro del bloque del adaptador
-            dentroBloque = true;
-            fprintf(archivoParam, "-----------------------------------\n");
-            fprintf(archivoParam, "--- Datos del adaptador guardado ---\n");
-            // Escribir la información en el archivo adaptador.txt y mostrar
-            fprintf(archivoParam, "%s", buffer);
-            printf("%s", buffer);
-        }
-
-        // Si estamos dentro del bloque del adaptador
-        if (dentroBloque) {
-            // Si la línea contiene información relevante
-            if (strstr(buffer, "IPv4") != NULL || strstr(buffer, "subred") != NULL || strstr(buffer, "enlace") != NULL) {
-                // Escribir la información en el archivo adaptador.txt y mostrar
-                fprintf(archivoParam, "%s", buffer);
-                printf("%s", buffer);
-                // Incrementar el contador de líneas
-                i++;
-                // Si se han mostrado las 3 líneas, salir bucle
-                if (i == 3){
-                    break;
-                }
-            }
-        }
-    }
-    fprintf(archivoParam, "-----------------------------------\n\n");
-
-    printf("-----------------------------------\n\n");
-    printf("Información del adaptador de red guardada en adaptador.txt.\n\n");
-    
-    // Cerrar el archivo
-    fclose(archivoParam);
-    
-    // Cerrar la conexión con el comando ipconfig
-    _pclose(consola); 
-}
-
-// Función para añadir los datos de un nuevo adaptador de red en un archivo
-void addAdaptadorRed(FILE * archivoParam) {
-    
-    char buffer[1024];
-    int tamBuffer = sizeof(buffer);
-    char entradaProcesada[1024];
-    bool bAdaptador = false;
-
-    // Mientras el nombre de adaptador introducido exista
-    while (1){
-        // Si no se han podido mostrar los adaptadores, salir
-        if (!mostrarSoloAdaptadores()) {
-            break;
-        }
-        // Si se han podido mostrar
-        else {
-            // Pedir el nombre del adaptador de red
-            printf("Introduce el nombre del adaptador de red que quieres añadir: ");
-            entradaSinNL(buffer, tamBuffer);
-            strcpy(entradaProcesada, buffer);
-            printf("Adaptador de red introducido: %s\n", entradaProcesada);
-            
-            // Si se encuentra el adaptador
-            if(encontrarAdaptador(entradaProcesada)){
-                printf("El adaptador ya existe. Introduce otro nombre.\n\n");
-                bAdaptador = false;
-            }
-            // Si no se encuentra el adaptador
-            else {
-                bAdaptador = true;
-                break;
-            }   
-        }
-    }
-    // Si no existe el adaptador
-    if (bAdaptador){
-        
-        // Registrar el nombre del adaptador en el archivo adaptador.txt
-        fprintf(archivoParam, "-----------------------------------\n");
-        fprintf(archivoParam, "Adaptador de Red %s\n", entradaProcesada);
-        fprintf(archivoParam, "-----------------------------------\n");
-        // Mostrar un mensaje de éxito
-        printf("Nombre del adaptador registrado con éxito.\n\n");
-
-        // Pedir datos del adaptador
-        if (!pedirDatos(archivoParam)) {
-            printf("Error en la introducción de datos");
-            fclose(archivoParam);
-            return;
-        }
-
-        // Volver al inicio del archivo
-        rewind(archivoParam);
-        // Mostar el contenido del archivo adaptador.txt
-        while (fgets(buffer, tamBuffer, archivoParam) != NULL) {
-            // Mostrar el contenido del archivo
-            printf("%s", buffer);
-        }
-
-        // Mostrar un mensaje de éxito
-        printf("Se han registrado con éxito los datos del adaptador introducidos.\n\n");
-
-        // Cerrar el archivo
-        fclose(archivoParam);
-    }
-}
 
 // Función para mostrar los adaptadores de red
 bool mostrarAdaptadores(void){
@@ -395,17 +212,17 @@ bool encontrarAdaptador(char* nAdaptador) {
     char comando[2048];
     FILE* consola = NULL;
     char buffer[1024];
-    int tamBuffer = sizeof(buffer);
+    size_t tamBuffer = sizeof(buffer);
     char* ptrInicio = NULL;
-    int longitud = strlen(nAdaptador);
-    char* coincidencia = (char*)malloc(longitud + 1);
+    size_t longitud = strlen(nAdaptador);
+    char* coincidencia = (char*)malloc(longitud+1);
     if (!coincidencia) {
         perror("Error al reservar memoria");
         return false;
     }
 
-    // Crear el comando para obtener la información del adaptador de red que coincida con la IP, la máscara y la puerta de enlace introducidas
-    sprintf(comando, "ipconfig | findstr /C:\"%s\" /C:\"IPv4\" /C:\"enlace\" /C:\"subred\" /i", nAdaptador);
+    // Crear el comando para obtener la información del adaptador de red seleccionado
+    sprintf(comando, "ipconfig | findstr /C:\"%s\" /i", nAdaptador);
     // Ejecutar el comando definido
     consola = _popen(comando, "r");
     // Si no se ha podido ejecutar el comando ipconfig
@@ -429,17 +246,21 @@ bool encontrarAdaptador(char* nAdaptador) {
             }
             else continue;
 
-
+            // Extraer los carácteres hasta la lingitud del adaptador introducido e introducir caracter final
+			strncpy(coincidencia, ptrInicio, longitud);
+            coincidencia[longitud] =  '\0';
 
             // Comparar el nombre del adaptador con el solicitado
-            if (strcmp(ptrInicio, nAdaptador) == 0) {
+            if (strcmp(coincidencia, nAdaptador) == 0) {
                 _pclose(consola);
                 printf("El adaptador '%s' existe.\n\n", nAdaptador);
+                free(coincidencia);
                 return true;
             }
         }
         // Cerrar la conexión con el comando ipconfig
         _pclose(consola);
+        free(coincidencia);
         // Registramos que no existe el adaptador
         return false;
     }
@@ -450,21 +271,23 @@ char* pedirAdaptador() {
     // Declaración de variables
     char buffer[1024];
     int tamBuffer = 1024;
-    char adaptador[1024];
+    char adaptador[1024] = { "" };
 
-    // Pedir el adaptador de red del que se quiere actualizar la DNS
-    printf("Introduce el nombre del adaptador de red del que quieres actualizar el DNS: ");
+    // Pedir el adaptador de red 
+    printf("Introduce el nombre del adaptador de red sobre el que quieres operar: ");
     entradaSinNL(buffer, tamBuffer);
     strcpy(adaptador, buffer);
+
     //printf("Adaptador de red introducido: %s\n", adaptador);
     return adaptador;
 }
 
 // Función para pedir adaptador existente con reintentos
-bool pedirAdaptadorReintentos(char * adaptador) {
+bool pedirAdaptadorReintentos(char * adaptador, bool exista) {
     // Declaración de variables
     char buffer[1024];
     int tamBuffer = 1024;
+    bool encontrado = false;
     
     // Pedir el nombre del adaptador de red hasta que se elija existente o se decida salir
     do {
@@ -474,11 +297,15 @@ bool pedirAdaptadorReintentos(char * adaptador) {
         }
         // Pedir el nombre del adaptador de red
         strcpy(adaptador, pedirAdaptador());
+        // Buscar adaptador
+        encontrado = encontrarAdaptador(adaptador);
         // Comprobar elección de adaptador
-        if (encontrarAdaptador(adaptador)) break;
-        printf("Adaptador no encontrado. ¿Desea introducir otro adaptador? (s/otro = salir): ");
+        if (encontrado && *&exista) break;
+        else if (!encontrado && !*&exista) break;
+        if (!encontrado) printf("Adaptador no existe. ¿Desea introducir otro adaptador? (si = sí / otro = salir): ");
+        if (encontrado) printf("Adaptador ya existe. ¿Desea introducir otro adaptador? (si = sí / otro = salir): ");
         entradaSinNL(buffer, tamBuffer);
-        if (strcmp(buffer, "s") == 0) {
+        if (strcmp(buffer, "si") == 0) {
             continue;
         }
         printf("Volviendo...\n");

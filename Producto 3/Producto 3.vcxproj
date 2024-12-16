@@ -26,6 +26,7 @@
     <ClInclude Include="..\entrada.h" />
     <ClInclude Include="..\fecha.h" />
     <ClInclude Include="..\menuProducto2.h" />
+    <ClInclude Include="..\operacionesAdaptador.h" />
     <ClInclude Include="..\ping.h" />
   </ItemGroup>
   <ItemGroup>
@@ -37,6 +38,7 @@
     <ClCompile Include="..\fecha.c" />
     <ClCompile Include="..\menuProducto2.c" />
     <ClCompile Include="..\MenuPrincipal.c" />
+    <ClCompile Include="..\operacionesAdaptador.c" />
     <ClCompile Include="..\ping.c" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

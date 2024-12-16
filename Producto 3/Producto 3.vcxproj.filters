@@ -39,6 +39,9 @@
     <ClInclude Include="..\menuProducto2.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
+    <ClInclude Include="..\operacionesAdaptador.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\actualizarDNS.c">
@@ -66,6 +69,9 @@
       <Filter>Archivos de origen</Filter>
     </ClCompile>
     <ClCompile Include="..\MenuPrincipal.c">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
+    <ClCompile Include="..\operacionesAdaptador.c">
       <Filter>Archivos de origen</Filter>
     </ClCompile>
   </ItemGroup>

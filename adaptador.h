@@ -9,14 +9,12 @@
 #include "entrada.h"
 
 // Declaración de funciones
-void modificarAdaptadorRed(FILE* archivoParam);
-void copiarAdaptadorRed(FILE *archivoParam);
-void addAdaptadorRed(FILE *archivoParm);
 bool mostrarAdaptadores(void);
 bool mostrarSoloAdaptadores(void);
 bool encontrarAdaptador(char *nAdaptador);
 bool pedirDatos(FILE* archivoParam);
 char* pedirAdaptador();
-bool pedirAdaptadorReintentos(char* adaptador);
+bool pedirAdaptadorReintentos(char* adaptador, bool exista);
+bool registrarDatosAdaptador(FILE* archivoParam, char* adaptador);
 
 #endif      // Fin definición ADAPTADOR_H
