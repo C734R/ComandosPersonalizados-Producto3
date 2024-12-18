@@ -233,10 +233,11 @@ bool mostrarDNSAdaptador(char* adaptador, char * rutaAdaptador) {
 }
 
 // Función para vaciar los archivos temporales de DNS
-bool vaciarArchivosDNS(char* rutaAdaptador, char* rutaVelocidadFichero, char* rutaVelocidadAdaptador, char* rutaResultadoCombinado) {
+bool vaciarArchivosDNS(char* rutaAdaptador, char* rutaVelocidadFichero, char* rutaVelocidadAdaptador, char* rutaResultado, char* rutaResultadoCombinado) {
 	if (!vaciarArchivo(rutaAdaptador)) return false;
 	if (!vaciarArchivo(rutaVelocidadFichero)) return false;
 	if (!vaciarArchivo(rutaVelocidadAdaptador)) return false;
+	if (!vaciarArchivo(rutaResultado)) return false;
 	if (!vaciarArchivo(rutaResultadoCombinado)) return false;
 	return true;
 }

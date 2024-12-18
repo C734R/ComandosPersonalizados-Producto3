@@ -14,6 +14,8 @@
 #define RUTA_VELOCIDAD_FICHERO "c:/temp/resultadoFichero.txt"
 #define RUTA_VELOCIDAD_ADAPTADOR "c:/temp/resultadoAdaptador.txt"
 #define RUTA_RESULTADO_COMBINADO "c:/temp/resultadoCombinado.txt"
+#define RUTA_RESULTADO "c:/temp/resultadoDNS.txt"
+
 
 // Función para actualizar las DNS de forma automática mediante fichero direcciones
 bool actualizarAutoDNS() {
@@ -81,7 +83,7 @@ bool actualizarAutoDNS() {
 		// Comprobar elección de adaptador
 		if (encontrarAdaptador(adaptador)) break;
 		// Si no encuentra, pregunta si quiere reintentar
-		printf("Adaptador no encontrado. ¿Desea introducir otro adaptador? (si = sí / otro = volver): ");
+		printf("Adaptador no encontrado. ¿Desea introducir otro adaptador? (si = sí / otro = salir): ");
 		entradaSinNL(buffer, tamBuffer);
 		if (strcmp(buffer, "s") == 0) {
 			continue;
@@ -93,7 +95,7 @@ bool actualizarAutoDNS() {
 	printf("*** Vaciar archivos temporales ***\n\n");
 
 	// Vaciar los archivos temporales
-	if (!vaciarArchivosDNS(RUTA_ADAPTADOR, RUTA_VELOCIDAD_FICHERO, RUTA_VELOCIDAD_ADAPTADOR, RUTA_RESULTADO_COMBINADO)) {
+	if (!vaciarArchivosDNS(RUTA_ADAPTADOR, RUTA_VELOCIDAD_FICHERO, RUTA_VELOCIDAD_ADAPTADOR, RUTA_RESULTADO, RUTA_RESULTADO_COMBINADO)) {
 		printf("Error al vaciar los archivos temporales. Volviendo...\n\n");
 		return false;
 	}

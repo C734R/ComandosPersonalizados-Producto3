@@ -298,8 +298,8 @@ bool pedirAdaptadorReintentos(char * adaptador, bool exista) {
         // Comprobar elección de adaptador
         if (encontrado && *&exista) break;
         else if (!encontrado && !*&exista) break;
-        if (!encontrado) printf("Adaptador no existe. ¿Desea introducir otro adaptador? (si = sí / otro = volver): ");
-        if (encontrado) printf("Adaptador ya existe. ¿Desea introducir otro adaptador? (si = sí / otro = volver): ");
+        if (!encontrado) printf("Adaptador no existe. ¿Desea introducir otro adaptador? (si = sí / otro = salir): ");
+        if (encontrado) printf("Adaptador ya existe. ¿Desea introducir otro adaptador? (si = sí / otro = salir): ");
         entradaSinNL(buffer, tamBuffer);
         if (strcmp(buffer, "si") == 0) {
             continue;
