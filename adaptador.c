@@ -7,7 +7,6 @@
 #include "entrada.h"
 #include "ping.h"
 
-
 bool registrarDatosAdaptador(FILE* archivoParam, char* adaptador) {
     char buffer[1024];
     int tamBuffer = sizeof(buffer);
@@ -133,8 +132,6 @@ bool pedirDatos(FILE* archivoParam) {
 	return true;
 }
 
-
-
 // Función para mostrar los adaptadores de red
 bool mostrarAdaptadores(void){
     
@@ -204,7 +201,6 @@ bool mostrarSoloAdaptadores(void) {
     // Devolver verdadero
     return true;
 }
-
 
 // Función para comrpobar si existe un adaptador de red
 bool encontrarAdaptador(char* nAdaptador) {

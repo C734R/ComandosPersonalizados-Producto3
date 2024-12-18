@@ -4,7 +4,8 @@
 // Añadimos librerías necesarias
 #include <stdbool.h>
 
-char * pedirArchivoDNS();
+void pedirArchivoDNS(char* rutaArchivoDNS);
+bool pedirCrearArchivoDNS(char* rutaArchivoDNS);
 bool mostrarArchivoDNS(char* rutaDNS);
 bool mostrarDNSAdaptador(char* adaptador, char* rutaAdaptador);
 bool vaciarArchivosDNS(char* rutaAdaptador, char* rutaVelocidadFichero, char* rutaVelocidadAdaptador, char* rutaResultado, char * rutaResultadoCombinado);

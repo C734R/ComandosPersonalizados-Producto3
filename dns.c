@@ -9,20 +9,86 @@
 #include "dns.h"
 #include "entrada.h"
 #include "archivo.h"
+#include "ping.h"
 
 // Función para pedir la ruta del archivo de DNS
-char * pedirArchivoDNS() {
+void pedirArchivoDNS(char * rutaArchivoDNS) {
 	// Declaración de variables
 	char buffer[1024];
 	int tamBuffer = 1024;
-	char rutaDNS[1024];
 
 	// Pedir la ruta del archivo de DNS
 	printf("Introduce la ruta del archivo de DNS: ");
 	entradaSinNL(buffer, tamBuffer);
-	strcpy(rutaDNS, buffer);
-	// Devolver la ruta del archivo de DNS
-	return rutaDNS;
+	strcpy(rutaArchivoDNS, buffer);
+
+}
+
+// Función para pedir ruta de fichero con IPs servidores DNSs o crear nuevo en ruta especificada e introducirlas
+bool pedirCrearArchivoDNS(char * rutaArchivoDNS) {
+	// Declaración de variables
+	FILE* archivoDNS = NULL;
+	char entradaProcesada[100];
+	char buffer[100] = { "" };
+	int tamBuffer = sizeof(buffer);
+	bool crear = false;
+
+	// Pedir archivo existente o crear en ruta especificada
+	while (1 && !crear) {
+		// Pedir ruta del archivo de DNSs
+		pedirArchivoDNS(rutaArchivoDNS);
+		if (!existeArchivo(rutaArchivoDNS)) {
+			printf("\nEl archivo no existe o es inaccesible.\n\n");
+			printf("¿Quieres volver a intentar introducir la ruta del fichero? (si = sí, otro = no) \n");
+			entradaSinNL(buffer, tamBuffer);
+			if (strcmp(buffer, "si") == 0) {
+				continue;
+			}
+			printf("¿Quieres crear el fichero %s e introducir las IP? (si = sí, otro = volver) \n", rutaArchivoDNS);
+			entradaSinNL(buffer, tamBuffer);
+			if (strcmp(buffer, "si") == 0) {
+				crear = true;
+				continue;
+			}
+			printf("Volviendo...\n\n");
+			return false;
+		}
+		return true;
+	}
+
+	// Crear el fichero en la ruta definida
+	if (!abrirArchivo(rutaArchivoDNS, "wt+", &archivoDNS)) {
+		printf("Error al crear el archivo en la ruta : %s\n", rutaArchivoDNS);
+		return false;
+	}
+
+	printf("Archivo creado con éxito.\n\n");
+
+	// Solicitar IPs a introducir en el fichero
+	while (1) {
+		printf("Introduce la IP a testear (o 'fin' para terminar): ");
+		entradaSinNL(buffer, tamBuffer);
+		strcpy(entradaProcesada, buffer);
+
+		// Si el usuario introduce 'fin', salir del bucle
+		if (strcmp(entradaProcesada, "fin") == 0) break;
+
+		// Si la IP no es válida, mostrar un mensaje de error y continuar con el bucle
+		if (!validarIP(entradaProcesada)) {
+			printf("IP no válida. Introduce una IP válida.\n\n");
+			continue;
+		}
+
+		// Escribir la IP en el archivo
+		fprintf(archivoDNS, "%s\n", entradaProcesada);
+	}
+
+	// Cerrar fichero DNSs
+	fclose(archivoDNS);
+
+	// Mostrar mensaje de éxito
+	printf("IPs introducidas en el archivo.\n\n");
+	return true;
 }
 
 // Función para mostrar el contenido de un archivo de DNS
@@ -63,6 +129,7 @@ bool mostrarDNSAdaptador(char* adaptador, char * rutaAdaptador) {
 	FILE* adaptadorDNS = NULL;
 	char ip[16];
 	bool ipOK = false;
+	bool cabecera = false;
 
 	// Variables para el método numérico
 	char* puntero = NULL;
@@ -92,20 +159,28 @@ bool mostrarDNSAdaptador(char* adaptador, char * rutaAdaptador) {
 		return false;
 	}
 
-	// Mostrar las DNS del adaptador de red seleccionado
-	printf("--- DNS del adaptador de red ---\n");
+
 	// Recorrer las líneas de la salida del comando ipconfig
 	while (fgets(buffer, tamBuffer, consola) != NULL) {
 		// Verificar contenido buffer
 		//printf("%s", buffer);
 
+		// Si la configuración es DHCP, omitir
+		if (strstr(buffer, "DHCP") != NULL) {
+			printf("Configuración DHCP. Omitiendo recogida de DNS del adaptador.\n\n");
+			return true;
+		}
+
+
+		// Mostrar las DNS del adaptador de red seleccionado
+		
 		// -- Método avances
 		//// Guardar las DNS en el archivo adaptadorDNS.txt
 		//if (strstr(buffer, "Servidores DNS configurados est") != NULL) {
 		//	//printf("%s", buffer + 50);
 		//	fprintf(adaptadorDNS, "%s", buffer + 50);
 		//}
-
+				
 		// -- Método numérico
 		// Definimos un puntero con la posición de inicio del buffer
 		puntero = buffer;
@@ -129,6 +204,10 @@ bool mostrarDNSAdaptador(char* adaptador, char * rutaAdaptador) {
 					if (longitudIP < 16) {
 						strncpy(ip, inicio, longitudIP);
 						ip[longitudIP] = '\0';
+						if (!cabecera) {
+							printf("--- DNS del adaptador de red ---\n");
+							cabecera = true;
+						}
 						printf("Encontrada IP: %s\n", ip);
 						fprintf(adaptadorDNS, "%s\n", ip);
 						ipOK = true;
@@ -142,7 +221,6 @@ bool mostrarDNSAdaptador(char* adaptador, char * rutaAdaptador) {
 	printf("-----------------------------------\n\n");
 
 	if (!ipOK) printf("No se encontraron IPs válidas.\n");
-
 
 	// Cerrar la conexión con el comando ipconfig
 	_pclose(consola);

@@ -35,24 +35,31 @@ bool actualizarAutoDNS() {
 
 	printf("*** Solicitar ruta del fichero de direcciones DNS ***\n\n");
 	
-	// Pedir la ruta del archivo de DNS hasta que se introduzca una válida o se superen los intentos
-	do {
-		// Pedir la ruta del archivo de DNS
-		strcpy(rutaDNS,pedirArchivoDNS());
+	//// Pedir la ruta del archivo de DNS hasta que se introduzca una válida o se superen los intentos
+	//do {
+	//	// Pedir la ruta del archivo de DNS
+	//	strcpy(rutaDNS,pedirArchivoDNS());
 
-		// Comprobar si el archivo existe y es accesible
-		if (existeArchivo(rutaDNS)) {
-			printf("Archivo accesible.\n\n");
-			//printf("Archivo de DNS introducido: %s\n", rutaDNS);
-			break;
-		}
-		printf("Error al abrir el archivo. Introduce una ruta válida.\n\n");
-		contador++;
-	} while (1 && contador < 2);
+	//	// Comprobar si el archivo existe y es accesible
+	//	if (existeArchivo(rutaDNS)) {
+	//		printf("Archivo accesible.\n\n");
+	//		//printf("Archivo de DNS introducido: %s\n", rutaDNS);
+	//		break;
+	//	}
+	//	printf("Error al abrir el archivo. No existe o no es accesible.\n\n");
 
-	// Si se han superado los intentos
-	if (contador > 2) {
-		printf("Demasiados intentos fallidos. Volviendo...\n\n");
+	//	contador++;
+	//} while (1 && contador < 2);
+
+	//// Si se han superado los intentos
+	//if (contador > 2) {
+	//	printf("Demasiados intentos fallidos. Volviendo...\n\n");
+	//	return false;
+	//}
+
+
+	// Pedir ruta fichero existente o crear nuevo e introducir IPs DNSs
+	if (!pedirCrearArchivoDNS(rutaDNS)) {
 		return false;
 	}
 
@@ -93,6 +100,8 @@ bool actualizarAutoDNS() {
 		return false;
 	}
 
+	pausaEnter();
+
 	printf("*** Mostrar los DNS configurados en el adaptador seleccionado ***\n\n");
 
 	// Mostrar las DNS del adaptador de red seleccionado y guardar en archivo
@@ -100,6 +109,8 @@ bool actualizarAutoDNS() {
 		printf("Error al mostrar las DNS del adaptador de red. Volviendo...\n\n");
 		return false;
 	}
+
+	pausaEnter();
 
 	printf("*** Comprobar velocidad DNSs fichero %s ***\n\n", rutaDNS);
 

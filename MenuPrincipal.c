@@ -40,17 +40,17 @@ int main() {
         switch (opcion_int){
 			// Proceder a la actualización de DNS de adaptador por el más rápido.
             case 1:
-				if (!actualizarAutoDNS()) printf("Error al actualizar las DNS del adaptador. Volviendo al menú principal...\n");
+				if (!actualizarAutoDNS()) printf("Error al actualizar las DNS del adaptador. Volviendo al menú principal...\n\n");
 				pausaEnter();
                 break;
             // Establecer manualmente las DNS de un adaptador
             case 2:
-                if (!actualizarManualDNS()) printf("Error al establecer manualmente las DNS en el adaptador. Volviendo al menú principal...\n");
+                if (!actualizarManualDNS()) printf("Error al establecer manualmente las DNS en el adaptador. Volviendo al menú principal...\n\n");
                 pausaEnter();
                 break;
             // Establecer DHCP para adaptador seleccionado
             case 3:
-                if (!actualizarDHCPDNS()) printf("Error al establecer el modo DHCP para el adaptador seleccionado. Volviendo al menú principal...\n");
+                if (!actualizarDHCPDNS()) printf("Error al establecer el modo DHCP para el adaptador seleccionado. Volviendo al menú principal...\n\n");
                 pausaEnter();
                 break;
             // Mostrar menú Producto 2
@@ -59,7 +59,7 @@ int main() {
                 break;
             // Salir del programa. 
             case 0:
-                printf("Saliendo de la aplicación...\n");
+                printf("Saliendo de la aplicación...\n\n");
                 pausaEnter();
                 break;
             // Opción inválida.
